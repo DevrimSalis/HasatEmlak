@@ -1,0 +1,196 @@
+﻿<!DOCTYPE html>
+<html lang="tr" class="h-100">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - HasatEmlak</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="d-flex flex-column h-100">
+    <header>
+        <!-- Top Bar -->
+        <div class="bg-primary text-white py-2 d-none d-md-block">
+            <div class="container">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <small class="me-3">
+                            <i class="fas fa-envelope me-1"></i> info@hasatemlak.com
+                        </small>
+                        <small>
+                            <i class="fas fa-phone me-1"></i> +90 312 123 45 67
+                        </small>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <a href="#" class="text-white me-2"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white me-2"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-white me-2"><i class="fab fa-instagram"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
+            <div class="container">
+                <a class="navbar-brand fw-bold fs-3 text-primary" href="@Url.Action("Index", "Home")">
+                    <i class="fas fa-home me-2"></i>HasatEmlak
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="@Url.Action("Index", "Home")">Ana Sayfa</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Index", "Property")">İlanlar</a>
+                        </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                                Kategoriler
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "Property", new { categoryId = 1 })">Satılık</a></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "Property", new { categoryId = 2 })">Kiralık</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="@Url.Action("Index", "Property")">Tüm İlanlar</a></li>
+                            </ul>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("About", "Home")">Hakkımızda</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="@Url.Action("Contact", "Home")">İletişim</a>
+                        </li>
+                    </ul>
+
+                    <div class="navbar-nav">
+                        <a class="nav-link btn btn-outline-primary me-2" href="/Admin">
+                            <i class="fas fa-cogs me-1"></i> Admin Panel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="flex-shrink-0">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light py-5 mt-auto">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="text-primary mb-3">
+                        <i class="fas fa-home me-2"></i>HasatEmlak
+                    </h5>
+                    <p class="mb-3">Türkiye'nin en güvenilir emlak platformu. Hayalinizdeki evi bulmak için buradayız.</p>
+                    <div class="d-flex gap-2">
+                        <a href="#" class="btn btn-outline-light btn-sm">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-sm">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-lg-2 col-md-4 mb-4">
+                    <h6 class="text-uppercase fw-bold mb-3">Hızlı Linkler</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="@Url.Action("Index", "Home")" class="text-light text-decoration-none">Ana Sayfa</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Index", "Property")" class="text-light text-decoration-none">İlanlar</a></li>
+                        <li class="mb-2"><a href="@Url.Action("About", "Home")" class="text-light text-decoration-none">Hakkımızda</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Contact", "Home")" class="text-light text-decoration-none">İletişim</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h6 class="text-uppercase fw-bold mb-3">Kategoriler</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="@Url.Action("Index", "Property", new { categoryId = 1 })" class="text-light text-decoration-none">Satılık</a></li>
+                        <li class="mb-2"><a href="@Url.Action("Index", "Property", new { categoryId = 2 })" class="text-light text-decoration-none">Kiralık</a></li>
+                        <li class="mb-2"><a href="#" class="text-light text-decoration-none">Villalar</a></li>
+                        <li class="mb-2"><a href="#" class="text-light text-decoration-none">Daireler</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 col-md-4 mb-4">
+                    <h6 class="text-uppercase fw-bold mb-3">İletişim</h6>
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                            Ankara, Türkiye
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-phone me-2 text-primary"></i>
+                            +90 312 123 45 67
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-envelope me-2 text-primary"></i>
+                            info@hasatemlak.com
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-clock me-2 text-primary"></i>
+                            Pazartesi - Cuma: 09:00 - 18:00
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2024 HasatEmlak. Tüm hakları saklıdır.</p>
+                </div>
+                <div class="col-md-6 text-end">
+                    <p class="mb-0">
+                        <a href="#" class="text-light text-decoration-none me-3">Gizlilik Politikası</a>
+                        <a href="#" class="text-light text-decoration-none">Kullanım Koşulları</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        // AOS Initialize
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
+        });
+
+        // Active navigation highlight
+        $(document).ready(function () {
+            var path = window.location.pathname;
+            $('.navbar-nav .nav-link').each(function () {
+                if ($(this).attr('href') === path) {
+                    $(this).addClass('active');
+                } else {
+                    $(this).removeClass('active');
+                }
+            });
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,370 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+    var featuredProperties = ViewBag.FeaturedProperties as IEnumerable<HasatEmlak.Models.Entities.Property>;
+    var latestProperties = ViewBag.LatestProperties as IEnumerable<HasatEmlak.Models.Entities.Property>;
+    var stats = ViewBag.Stats;
+    var categories = ViewBag.Categories as IEnumerable<HasatEmlak.Models.Entities.Category>;
+}
+
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8 mx-auto hero-content" data-aos="fade-up">
+                <h1 class="display-4 fw-bold mb-4">Hayalinizdeki Evi Bulun</h1>
+                <p class="lead mb-4">Türkiye'nin en güvenilir emlak platformunda binlerce ilan arasından size uygun olanı keşfedin.</p>
+                <div class="d-flex gap-3 justify-content-center">
+                    <a href="@Url.Action("Index", "Property")" class="btn btn-primary btn-lg">
+                        <i class="fas fa-search me-2"></i>İlan Ara
+                    </a>
+                    <a href="@Url.Action("About", "Home")" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-info-circle me-2"></i>Hakkımızda
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Form -->
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="search-form" data-aos="fade-up" data-aos-delay="200">
+                    <form asp-controller="Property" asp-action="Index" method="get">
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label">Kategori</label>
+                                <select class="form-select" name="categoryId">
+                                    <option value="">Tümü</option>
+                                    @if (categories != null)
+                                    {
+                                        @foreach (var category in categories)
+                                        {
+                                            <option value="@category.Id">@category.Name</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Şehir</label>
+                                <select class="form-select" name="cityId" id="citySelect">
+                                    <option value="">Şehir Seçin</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Fiyat Aralığı</label>
+                                <select class="form-select" name="priceRange">
+                                    <option value="">Tümü</option>
+                                    <option value="0-100000">100.000 TL'ye kadar</option>
+                                    <option value="100000-500000">100.000 - 500.000 TL</option>
+                                    <option value="500000-1000000">500.000 - 1.000.000 TL</option>
+                                    <option value="1000000-">1.000.000 TL üzeri</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-search me-2"></i>Ara
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Section -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="@stats.TotalProperties">0</span>
+                    <div class="stat-label">Toplam İlan</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="@stats.TotalForSale">0</span>
+                    <div class="stat-label">Satılık</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="@stats.TotalForRent">0</span>
+                    <div class="stat-label">Kiralık</div>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="300">
+                <div class="stat-item">
+                    <span class="stat-number" data-count="@stats.TotalAgents">0</span>
+                    <div class="stat-label">Emlakçı</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Properties -->
+@if (featuredProperties != null && featuredProperties.Any())
+{
+    <section class="py-5">
+        <div class="container">
+            <div class="section-title" data-aos="fade-up">
+                <h2>Öne Çıkan İlanlar</h2>
+                <p>En beğenilen ve özel seçilmiş emlak ilanlarımızı keşfedin</p>
+            </div>
+
+            <div class="row">
+                @foreach (var property in featuredProperties)
+                {
+                    <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="@(featuredProperties.ToList().IndexOf(property) * 100)">
+                        <div class="card property-card h-100">
+                            <div class="position-relative">
+                                @if (property.PropertyImages != null && property.PropertyImages.Any())
+                                {
+                                    <img src="/@property.PropertyImages.FirstOrDefault()?.ImagePath" class="card-img-top" alt="@property.Title" />
+                                }
+                                else
+                                {
+                                    <img src="https://via.placeholder.com/400x250?text=Görsel+Yok" class="card-img-top" alt="@property.Title" />
+                                }
+
+                                <span class="badge bg-primary">@property.Category?.Name</span>
+                                <button class="btn favorite-btn" title="Favorilere Ekle">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">@property.Title</h5>
+                                <p class="card-text text-muted small mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    @property.District?.Name, @property.City?.Name
+                                </p>
+
+                                <div class="property-features mb-3">
+                                    @if (property.Area.HasValue)
+                                    {
+                                        <span><i class="fas fa-expand-arrows-alt"></i> @property.Area m²</span>
+                                    }
+                                    @if (property.RoomCount.HasValue)
+                                    {
+                                        <span><i class="fas fa-bed"></i> @property.RoomCount oda</span>
+                                    }
+                                    @if (property.BathroomCount.HasValue)
+                                    {
+                                        <span><i class="fas fa-bath"></i> @property.BathroomCount banyo</span>
+                                    }
+                                </div>
+
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="property-price">@property.Price.ToString("N0") ₺</div>
+                                        <a href="@Url.Action("Details", "Property", new { id = property.Id })" class="btn btn-primary btn-sm">
+                                            Detay <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="text-center mt-4" data-aos="fade-up">
+                <a href="@Url.Action("Index", "Property")" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-th-large me-2"></i>Tüm İlanları Görüntüle
+                </a>
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Categories Section -->
+@if (categories != null && categories.Any())
+{
+    <section class="py-5 bg-light">
+        <div class="container">
+            <div class="section-title" data-aos="fade-up">
+                <h2>Kategoriler</h2>
+                <p>Size uygun kategoriyi seçin ve arama yapın</p>
+            </div>
+
+            <div class="row">
+                @foreach (var category in categories)
+                {
+                    <div class="col-lg-6 col-md-12 mb-4" data-aos="fade-up" data-aos-delay="@(categories.ToList().IndexOf(category) * 150)">
+                        <div class="card h-100 border-0 shadow-sm">
+                            <div class="card-body text-center p-5">
+                                <div class="mb-3">
+                                    <i class="@category.IconClass fa-3x text-primary"></i>
+                                </div>
+                                <h4 class="card-title">@category.Name</h4>
+                                <p class="card-text text-muted">@category.Description</p>
+                                <a href="@Url.Action("Index", "Property", new { categoryId = category.Id })"
+                                   class="btn btn-primary">
+                                    İlanları Görüntüle <i class="fas fa-arrow-right ms-1"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Latest Properties -->
+@if (latestProperties != null && latestProperties.Any())
+{
+    <section class="py-5">
+        <div class="container">
+            <div class="section-title" data-aos="fade-up">
+                <h2>Son Eklenen İlanlar</h2>
+                <p>En yeni emlak ilanlarını kaçırmayın</p>
+            </div>
+
+            <div class="row">
+                @foreach (var property in latestProperties.Take(4))
+                {
+                    <div class="col-lg-3 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="@(latestProperties.Take(4).ToList().IndexOf(property) * 100)">
+                        <div class="card property-card h-100">
+                            <div class="position-relative">
+                                @if (property.PropertyImages != null && property.PropertyImages.Any())
+                                {
+                                    <img src="/@property.PropertyImages.FirstOrDefault()?.ImagePath" class="card-img-top" alt="@property.Title" />
+                                }
+                                else
+                                {
+                                    <img src="https://via.placeholder.com/300x200?text=Görsel+Yok" class="card-img-top" alt="@property.Title" />
+                                }
+
+                                <span class="badge bg-success">Yeni</span>
+                                <button class="btn favorite-btn" title="Favorilere Ekle">
+                                    <i class="far fa-heart"></i>
+                                </button>
+                            </div>
+
+                            <div class="card-body d-flex flex-column">
+                                <h6 class="card-title">@(property.Title.Length > 50 ? property.Title.Substring(0, 47) + "..." : property.Title)</h6>
+                                <p class="card-text text-muted small mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i>
+                                    @property.District?.Name, @property.City?.Name
+                                </p>
+
+                                <div class="property-features mb-3 small">
+                                    @if (property.Area.HasValue)
+                                    {
+                                        <span><i class="fas fa-expand-arrows-alt"></i> @property.Area m²</span>
+                                    }
+                                    @if (property.RoomCount.HasValue)
+                                    {
+                                        <span><i class="fas fa-bed"></i> @property.RoomCount</span>
+                                    }
+                                </div>
+
+                                <div class="mt-auto">
+                                    <div class="property-price mb-2">@property.Price.ToString("N0") ₺</div>
+                                    <a href="@Url.Action("Details", "Property", new { id = property.Id })" class="btn btn-primary btn-sm w-100">
+                                        Detay Gör
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+<!-- Why Choose Us -->
+<section class="py-5">
+    <div class="container">
+        <div class="section-title" data-aos="fade-up">
+            <h2>Neden HasatEmlak?</h2>
+            <p>Size en iyi hizmeti sunmak için buradayız</p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up">
+                <div class="text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-shield-alt fa-3x text-primary"></i>
+                    </div>
+                    <h5>Güvenli İşlemler</h5>
+                    <p class="text-muted">Tüm işlemleriniz SSL sertifikası ile korunur ve güvenli bir şekilde gerçekleştirilir.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="100">
+                <div class="text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-users fa-3x text-primary"></i>
+                    </div>
+                    <h5>Uzman Ekip</h5>
+                    <p class="text-muted">Alanında uzman emlak danışmanlarımız size en iyi hizmeti sunmak için hazır.</p>
+                </div>
+            </div>
+
+            <div class="col-lg-4 col-md-6 mb-4" data-aos="fade-up" data-aos-delay="200">
+                <div class="text-center p-4">
+                    <div class="mb-3">
+                        <i class="fas fa-clock fa-3x text-primary"></i>
+                    </div>
+                    <h5>7/24 Destek</h5>
+                    <p class="text-muted">Sorularınız için 7/24 müşteri destek hizmeti ile yanınızdayız.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Counter Animation
+            $('.stat-number').each(function() {
+                var $this = $(this);
+                var countTo = $this.data('count');
+
+                $({ countNum: 0 }).animate({ countNum: countTo }, {
+                    duration: 2000,
+                    easing: 'swing',
+                    step: function() {
+                        $this.text(Math.floor(this.countNum).toLocaleString());
+                    },
+                    complete: function() {
+                        $this.text(countTo.toLocaleString());
+                    }
+                });
+            });
+
+            // Favorite button functionality
+            $('.favorite-btn').click(function(e) {
+                e.preventDefault();
+                var icon = $(this).find('i');
+                if (icon.hasClass('far')) {
+                    icon.removeClass('far').addClass('fas');
+                    $(this).addClass('text-danger');
+                } else {
+                    icon.removeClass('fas').addClass('far');
+                    $(this).removeClass('text-danger');
+                }
+            });
+
+            // Load cities for search form
+            loadCities();
+        });
+
+        function loadCities() {
+            // Bu fonksiyonu daha sonra AJAX ile dolduracağız
+            $('#citySelect').html('<option value="">Şehir Seçin</option>' +
+                '<option value="1">İstanbul</option>' +
+                '<option value="2">Ankara</option>' +
+                '<option value="3">İzmir</option>' +
+                '<option value="4">Antalya</option>' +
+                '<option value="5">Bursa</option>');
+        }
+    </script>
+}
