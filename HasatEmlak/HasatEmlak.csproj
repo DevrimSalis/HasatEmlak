@@ -8,9 +8,8 @@
 
   <ItemGroup>
     <Folder Include="Areas\Admin\Models\ViewModels\" />
-    <Folder Include="Areas\Admin\Views\City\" />
-    <Folder Include="Views\Admin\" />
     <Folder Include="Views\Account\" />
+    <Folder Include="Views\Admin\" />
     <Folder Include="wwwroot\images\uploads\" />
     <Folder Include="wwwroot\images\properties\" />
   </ItemGroup>

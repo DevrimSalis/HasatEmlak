@@ -1,0 +1,584 @@
+﻿@model IEnumerable<HasatEmlak.Models.Entities.City>
+
+@{
+    ViewData["Title"] = "Konum Yönetimi";
+}
+
+@section PageActions {
+    <div class="btn-group">
+        <button type="button" class="btn btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addCityModal">
+            <i class="fas fa-plus me-1"></i>Yeni Şehir Ekle
+        </button>
+    </div>
+}
+
+<!-- Location Management -->
+<div class="row">
+    <div class="col-12">
+        <div class="card admin-card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Şehir, İlçe ve Mahalle Yönetimi</h5>
+            </div>
+            <div class="card-body p-0">
+                @if (Model != null && Model.Any())
+                {
+                    <div class="accordion" id="locationAccordion">
+                        @foreach (var city in Model)
+                        {
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="heading-@city.Id">
+                                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                            data-bs-target="#collapse-@city.Id">
+                                        <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                            <div>
+                                                <strong>@city.Name</strong>
+                                                @if (!string.IsNullOrEmpty(city.PlateCode))
+                                                {
+                                                    <span class="badge bg-secondary ms-2">@city.PlateCode</span>
+                                                }
+                                                <span class="badge bg-info ms-2">@city.Districts.Count() İlçe</span>
+                                                <span class="badge bg-success ms-1">@city.Districts.Sum(d => d.Neighborhoods.Count()) Mahalle</span>
+                                            </div>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-primary"
+                                                        onclick="editCity(@city.Id, '@city.Name', '@city.PlateCode')"
+                                                        title="Şehir Düzenle">
+                                                    <i class="fas fa-edit"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-success"
+                                                        onclick="addDistrict(@city.Id, '@city.Name')"
+                                                        title="İlçe Ekle">
+                                                    <i class="fas fa-plus"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-outline-danger"
+                                                        onclick="deleteCity(@city.Id)"
+                                                        title="Şehir Sil">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </h2>
+                                <div id="collapse-@city.Id" class="accordion-collapse collapse"
+                                     data-bs-parent="#locationAccordion">
+                                    <div class="accordion-body">
+                                        <!-- Districts -->
+                                        @if (city.Districts.Any())
+                                        {
+                                            @foreach (var district in city.Districts.OrderBy(d => d.Name))
+                                            {
+                                                <div class="card mb-3">
+                                                    <div class="card-header bg-light">
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <div>
+                                                                <strong>@district.Name</strong>
+                                                                <span class="badge bg-info ms-2">@district.Neighborhoods.Count() Mahalle</span>
+                                                            </div>
+                                                            <div class="btn-group btn-group-sm">
+                                                                <button type="button" class="btn btn-outline-primary"
+                                                                        onclick="editDistrict(@district.Id, '@district.Name')"
+                                                                        title="İlçe Düzenle">
+                                                                    <i class="fas fa-edit"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-outline-success"
+                                                                        onclick="addNeighborhood(@district.Id, '@district.Name')"
+                                                                        title="Mahalle Ekle">
+                                                                    <i class="fas fa-plus"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-outline-danger"
+                                                                        onclick="deleteDistrict(@district.Id)"
+                                                                        title="İlçe Sil">
+                                                                    <i class="fas fa-trash"></i>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Neighborhoods -->
+                                                    @if (district.Neighborhoods.Any())
+                                                    {
+                                                        <div class="card-body">
+                                                            <div class="row">
+                                                                @foreach (var neighborhood in district.Neighborhoods.OrderBy(n => n.Name))
+                                                                {
+                                                                    <div class="col-md-3 col-sm-4 col-6 mb-2">
+                                                                        <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                                                            <span class="small">@neighborhood.Name</span>
+                                                                            <div class="btn-group btn-group-sm">
+                                                                                <button type="button" class="btn btn-outline-primary btn-sm"
+                                                                                        onclick="editNeighborhood(@neighborhood.Id, '@neighborhood.Name')"
+                                                                                        title="Düzenle">
+                                                                                    <i class="fas fa-edit fa-xs"></i>
+                                                                                </button>
+                                                                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                                                                        onclick="deleteNeighborhood(@neighborhood.Id)"
+                                                                                        title="Sil">
+                                                                                    <i class="fas fa-trash fa-xs"></i>
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="card-body text-center text-muted">
+                                                            <p class="mb-2">Bu ilçede henüz mahalle eklenmemiş.</p>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                                    onclick="addNeighborhood(@district.Id, '@district.Name')">
+                                                                <i class="fas fa-plus me-1"></i>İlk Mahalleyi Ekle
+                                                            </button>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="text-center text-muted">
+                                                <p class="mb-2">Bu şehirde henüz ilçe eklenmemiş.</p>
+                                                <button type="button" class="btn btn-outline-primary"
+                                                        onclick="addDistrict(@city.Id, '@city.Name')">
+                                                    <i class="fas fa-plus me-1"></i>İlk İlçeyi Ekle
+                                                </button>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-map fa-4x text-muted"></i>
+                        </div>
+                        <h4>Henüz şehir eklenmemiş</h4>
+                        <p class="text-muted mb-4">İlan lokasyonları için şehir, ilçe ve mahalle bilgilerini yönetin.</p>
+                        <button type="button" class="btn btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addCityModal">
+                            <i class="fas fa-plus me-1"></i>İlk Şehri Ekle
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add City Modal -->
+<div class="modal fade" id="addCityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Edit City Modal -->
+            <div class="modal fade" id="editCityModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Şehir Düzenle</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editCityForm">
+                                <input type="hidden" id="edit_city_id">
+                                <div class="mb-3">
+                                    <label class="form-label">Şehir Adı *</label>
+                                    <input type="text" class="form-control" id="edit_city_name" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Plaka Kodu</label>
+                                    <input type="text" class="form-control" id="edit_city_plateCode">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="button" class="btn btn-admin-primary" onclick="updateCity()">
+                                <i class="fas fa-save me-1"></i>Güncelle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add District Modal -->
+            <div class="modal fade" id="addDistrictModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Yeni İlçe Ekle</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="addDistrictForm">
+                                <input type="hidden" id="district_cityId">
+                                <div class="mb-3">
+                                    <label class="form-label">Şehir</label>
+                                    <input type="text" class="form-control" id="district_cityName" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">İlçe Adı *</label>
+                                    <input type="text" class="form-control" id="district_name" required>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="button" class="btn btn-admin-primary" onclick="createDistrict()">
+                                <i class="fas fa-save me-1"></i>İlçe Ekle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit District Modal -->
+            <div class="modal fade" id="editDistrictModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">İlçe Düzenle</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editDistrictForm">
+                                <input type="hidden" id="edit_district_id">
+                                <div class="mb-3">
+                                    <label class="form-label">İlçe Adı *</label>
+                                    <input type="text" class="form-control" id="edit_district_name" required>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="button" class="btn btn-admin-primary" onclick="updateDistrict()">
+                                <i class="fas fa-save me-1"></i>Güncelle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Neighborhood Modal -->
+            <div class="modal fade" id="addNeighborhoodModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Yeni Mahalle Ekle</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="addNeighborhoodForm">
+                                <input type="hidden" id="neighborhood_districtId">
+                                <div class="mb-3">
+                                    <label class="form-label">İlçe</label>
+                                    <input type="text" class="form-control" id="neighborhood_districtName" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Mahalle Adı *</label>
+                                    <input type="text" class="form-control" id="neighborhood_name" required>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="button" class="btn btn-admin-primary" onclick="createNeighborhood()">
+                                <i class="fas fa-save me-1"></i>Mahalle Ekle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Neighborhood Modal -->
+            <div class="modal fade" id="editNeighborhoodModal" tabindex="-1">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Mahalle Düzenle</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="editNeighborhoodForm">
+                                <input type="hidden" id="edit_neighborhood_id">
+                                <div class="mb-3">
+                                    <label class="form-label">Mahalle Adı *</label>
+                                    <input type="text" class="form-control" id="edit_neighborhood_name" required>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                            <button type="button" class="btn btn-admin-primary" onclick="updateNeighborhood()">
+                                <i class="fas fa-save me-1"></i>Güncelle
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @section Scripts {
+                <script>
+        // City Functions
+        function createCity() {
+            var name = $('#city_name').val();
+            var plateCode = $('#city_plateCode').val();
+
+            if (!name.trim()) {
+                showAlert('Şehir adı gereklidir!', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("CreateCity")',
+                type: 'POST',
+                data: { name: name, plateCode: plateCode },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#addCityModal').modal('hide');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Şehir eklenirken hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function editCity(id, name, plateCode) {
+            $('#edit_city_id').val(id);
+            $('#edit_city_name').val(name);
+            $('#edit_city_plateCode').val(plateCode);
+            $('#editCityModal').modal('show');
+        }
+
+        function updateCity() {
+            var id = $('#edit_city_id').val();
+            var name = $('#edit_city_name').val();
+            var plateCode = $('#edit_city_plateCode').val();
+
+            $.ajax({
+                url: '@Url.Action("EditCity")',
+                type: 'POST',
+                data: { id: id, name: name, plateCode: plateCode },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#editCityModal').modal('hide');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                }
+            });
+        }
+
+        function deleteCity(id) {
+            if (confirm('Bu şehri silmek istediğinizden emin misiniz?')) {
+                $.ajax({
+                    url: '@Url.Action("DeleteCity")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    }
+                });
+            }
+        }
+
+        // District Functions
+        function addDistrict(cityId, cityName) {
+            $('#district_cityId').val(cityId);
+            $('#district_cityName').val(cityName);
+            $('#district_name').val('');
+            $('#addDistrictModal').modal('show');
+        }
+
+        function createDistrict() {
+            var cityId = $('#district_cityId').val();
+            var name = $('#district_name').val();
+
+            if (!name.trim()) {
+                showAlert('İlçe adı gereklidir!', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("CreateDistrict")',
+                type: 'POST',
+                data: { cityId: cityId, name: name },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#addDistrictModal').modal('hide');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                }
+            });
+        }
+
+        function editDistrict(id, name) {
+            $('#edit_district_id').val(id);
+            $('#edit_district_name').val(name);
+            $('#editDistrictModal').modal('show');
+        }
+
+        function updateDistrict() {
+            var id = $('#edit_district_id').val();
+            var name = $('#edit_district_name').val();
+
+            $.ajax({
+                url: '@Url.Action("EditDistrict")',
+                type: 'POST',
+                data: { id: id, name: name },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#editDistrictModal').modal('hide');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                }
+            });
+        }
+
+        function deleteDistrict(id) {
+            if (confirm('Bu ilçeyi silmek istediğinizden emin misiniz?')) {
+                $.ajax({
+                    url: '@Url.Action("DeleteDistrict")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    }
+                });
+            }
+        }
+
+        // Neighborhood Functions
+        function addNeighborhood(districtId, districtName) {
+            $('#neighborhood_districtId').val(districtId);
+            $('#neighborhood_districtName').val(districtName);
+            $('#neighborhood_name').val('');
+            $('#addNeighborhoodModal').modal('show');
+        }
+
+        function createNeighborhood() {
+            var districtId = $('#neighborhood_districtId').val();
+            var name = $('#neighborhood_name').val();
+
+            if (!name.trim()) {
+                showAlert('Mahalle adı gereklidir!', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("CreateNeighborhood")',
+                type: 'POST',
+                data: { districtId: districtId, name: name },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#addNeighborhoodModal').modal('hide');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                }
+            });
+        }
+
+        function editNeighborhood(id, name) {
+            $('#edit_neighborhood_id').val(id);
+            $('#edit_neighborhood_name').val(name);
+            $('#editNeighborhoodModal').modal('show');
+        }
+
+        function updateNeighborhood() {
+            var id = $('#edit_neighborhood_id').val();
+            var name = $('#edit_neighborhood_name').val();
+
+            $.ajax({
+                url: '@Url.Action("EditNeighborhood")',
+                type: 'POST',
+                data: { id: id, name: name },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#editNeighborhoodModal').modal('hide');
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                }
+            });
+        }
+
+        function deleteNeighborhood(id) {
+            if (confirm('Bu mahalleyi silmek istediğinizden emin misiniz?')) {
+                $.ajax({
+                    url: '@Url.Action("DeleteNeighborhood")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(() => location.reload(), 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    }
+                });
+            }
+        }
+                </script>
+            }
+            <h5 class="modal-title">Yeni Şehir Ekle</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <form id="addCityForm">
+                <div class="mb-3">
+                    <label class="form-label">Şehir Adı *</label>
+                    <input type="text" class="form-control" id="city_name" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Plaka Kodu</label>
+                    <input type="text" class="form-control" id="city_plateCode" placeholder="06">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+            <button type="button" class="btn btn-admin-primary" onclick="createCity()">
+                <i class="fas fa-save me-1"></i>Şehir Ekle
+            </button>
+        </div>
+    </div>
+</div>
+</div>
+
+<!-- Edit City Modal -->
+<div class="modal fade" id="editCityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">

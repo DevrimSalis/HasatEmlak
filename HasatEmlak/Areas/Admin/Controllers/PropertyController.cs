@@ -94,8 +94,16 @@ namespace HasatEmlak.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(PropertyCreateViewModel model)
         {
-            if (ModelState.IsValid)
+            try
             {
+                // ModelState'i kontrol et
+                if (!ModelState.IsValid)
+                {
+                    await PrepareViewBagData();
+                    TempData["Error"] = "Lütfen tüm zorunlu alanları doldurun!";
+                    return View(model);
+                }
+
                 var property = new Property
                 {
                     Title = model.Title,
@@ -132,9 +140,12 @@ namespace HasatEmlak.Areas.Admin.Controllers
                 TempData["Success"] = "İlan başarıyla oluşturuldu!";
                 return RedirectToAction(nameof(Index));
             }
-
-            await PrepareViewBagData();
-            return View(model);
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"İlan kaydedilirken hata oluştu: {ex.Message}";
+                await PrepareViewBagData();
+                return View(model);
+            }
         }
 
         // GET: Admin/Property/Edit/5

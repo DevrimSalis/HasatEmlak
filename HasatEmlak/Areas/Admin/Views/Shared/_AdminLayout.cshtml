@@ -126,8 +126,8 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "City" ? "active" : "")"
-                           href="@Url.Action("Index", "City", new { area = "Admin" })">
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Location" ? "active" : "")"
+                           href="@Url.Action("Index", "Location", new { area = "Admin" })">
                             <i class="fas fa-map-marker-alt me-2"></i>Lokasyonlar
                         </a>
                     </li>

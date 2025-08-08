@@ -1,6 +1,7 @@
 // Program.cs - SIMPLIFIED VERSION (Hatasýz)
 using HasatEmlak.Data;
 using HasatEmlak.Services;
+using HasatEmlak.Middleware;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,15 +13,6 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Custom Services
-builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<ISeoService, SeoService>();
-builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
-builder.Services.AddSingleton<ICacheService, CacheService>();
-
-// Memory Cache
-builder.Services.AddMemoryCache();
-
 // Session
 builder.Services.AddSession(options =>
 {
@@ -28,9 +20,6 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-
-// Response Caching
-builder.Services.AddResponseCaching();
 
 var app = builder.Build();
 
@@ -46,7 +35,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 app.UseSession();
-app.UseResponseCaching();
+
+// Admin Auth Middleware
+app.UseMiddleware<AdminAuthMiddleware>();
+
+app.UseAuthorization();
 app.UseAuthorization();
 
 // Routes
