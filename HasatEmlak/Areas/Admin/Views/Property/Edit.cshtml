@@ -328,29 +328,29 @@
             loadSelectedLocations();
         });
 
+        function initializeLocationDropdowns() {
+            $('#citySelect').on('change', function() {
+                var cityId = $(this).val();
+                loadDistricts(cityId);
+            });
+
+            $('#districtSelect').on('change', function() {
+                var districtId = $(this).val();
+                loadNeighborhoods(districtId);
+            });
+        }
+
         function loadSelectedLocations() {
             var selectedCityId = $('#citySelect').val();
-            var districtId = parseInt($('#locationData').data('district-id')) || 0;
-            var neighborhoodId = parseInt($('#locationData').data('neighborhood-id')) || 0;
+            var selectedDistrictId = @Html.Raw(Model.DistrictId);
+            var selectedNeighborhoodId = @Html.Raw(Model.NeighborhoodId ?? 0);
 
-
-            if (selectedCityId) {
-                loadDistricts(selectedCityId, selectedDistrictId);
+            if (selectedCityId && selectedDistrictId > 0) {
+                loadDistricts(selectedCityId, selectedDistrictId, selectedNeighborhoodId);
             }
         }
 
-        // Location dropdowns
-        $('#citySelect').on('change', function() {
-            var cityId = $(this).val();
-            loadDistricts(cityId);
-        });
-
-        $('#districtSelect').on('change', function() {
-            var districtId = $(this).val();
-            loadNeighborhoods(districtId);
-        });
-
-        function loadDistricts(cityId, selectedDistrictId = null) {
+        function loadDistricts(cityId, selectedDistrictId = null, selectedNeighborhoodId = null) {
             var districtSelect = $('#districtSelect');
             var neighborhoodSelect = $('#neighborhoodSelect');
 
@@ -358,17 +358,36 @@
             neighborhoodSelect.html('<option value="">İlçe seçin</option>');
 
             if (cityId) {
-                $.get('@Url.Action("GetDistricts", "Property")', { cityId: cityId }, function(data) {
-                    var options = '<option value="">İlçe Seçin</option>';
-                    $.each(data, function(index, district) {
-                        var selected = district.id == selectedDistrictId ? 'selected' : '';
-                        options += '<option value="' + district.id + '" ' + selected + '>' + district.name + '</option>';
-                    });
-                    districtSelect.html(options);
+                $.ajax({
+                    url: '@Url.Action("GetDistricts", "Property", new { area = "Admin" })',
+                    type: 'GET',
+                    data: { cityId: cityId },
+                    success: function(data) {
+                        if (data.error) {
+                            console.error('Hata:', data.error);
+                            districtSelect.html('<option value="">Hata oluştu</option>');
+                            showAlert('İlçeler yüklenirken hata oluştu: ' + data.message, 'danger');
+                            return;
+                        }
 
-                    // Load neighborhoods if district is selected
-                    if (selectedDistrictId) {
-                        loadNeighborhoods(selectedDistrictId);
+                        var options = '<option value="">İlçe Seçin</option>';
+                        $.each(data, function(index, district) {
+                            var selected = district.id == selectedDistrictId ? 'selected' : '';
+                            options += '<option value="' + district.id + '" ' + selected + '>' + district.name + '</option>';
+                        });
+                        districtSelect.html(options);
+
+                        // Load neighborhoods if district is selected
+                        if (selectedDistrictId && selectedDistrictId > 0) {
+                            loadNeighborhoods(selectedDistrictId, selectedNeighborhoodId);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Hatası:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        districtSelect.html('<option value="">Hata oluştu</option>');
+                        showAlert('İlçeler yüklenirken hata oluştu!', 'danger');
                     }
                 });
             } else {
@@ -379,18 +398,34 @@
 
         function loadNeighborhoods(districtId, selectedNeighborhoodId = null) {
             var neighborhoodSelect = $('#neighborhoodSelect');
-            var selectedNeighborhoodId = @(Model.NeighborhoodId ?? 0);
 
             neighborhoodSelect.html('<option value="">Yükleniyor...</option>');
 
             if (districtId) {
-                $.get('@Url.Action("GetNeighborhoods", "Property")', { districtId: districtId }, function(data) {
-                    var options = '<option value="">Mahalle Seçin</option>';
-                    $.each(data, function(index, neighborhood) {
-                        var selected = neighborhood.id == selectedNeighborhoodId ? 'selected' : '';
-                        options += '<option value="' + neighborhood.id + '" ' + selected + '>' + neighborhood.name + '</option>';
-                    });
-                    neighborhoodSelect.html(options);
+                $.ajax({
+                    url: '@Url.Action("GetNeighborhoods", "Property", new { area = "Admin" })',
+                    type: 'GET',
+                    data: { districtId: districtId },
+                    success: function(data) {
+                        if (data.error) {
+                            console.error('Hata:', data.error);
+                            neighborhoodSelect.html('<option value="">Hata oluştu</option>');
+                            showAlert('Mahalleler yüklenirken hata oluştu: ' + data.message, 'danger');
+                            return;
+                        }
+
+                        var options = '<option value="">Mahalle Seçin</option>';
+                        $.each(data, function(index, neighborhood) {
+                            var selected = neighborhood.id == selectedNeighborhoodId ? 'selected' : '';
+                            options += '<option value="' + neighborhood.id + '" ' + selected + '>' + neighborhood.name + '</option>';
+                        });
+                        neighborhoodSelect.html(options);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Hatası:', error);
+                        neighborhoodSelect.html('<option value="">Hata oluştu</option>');
+                        showAlert('Mahalleler yüklenirken hata oluştu!', 'danger');
+                    }
                 });
             } else {
                 neighborhoodSelect.html('<option value="">Mahalle Seçin</option>');
@@ -536,9 +571,27 @@
 
         function duplicateProperty(id) {
             if (confirm('Bu ilanın bir kopyasını oluşturmak istediğinizden emin misiniz?')) {
-                // Bu özelliği daha sonra implement edebiliriz
                 showAlert('Bu özellik yakında eklenecek!', 'info');
             }
+        }
+
+        // Alert function
+        function showAlert(message, type) {
+            var alertClass = 'alert-' + type;
+            var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                            '<i class="fas fa-exclamation-circle me-2"></i>' + message +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                            '</div>';
+
+            if ($('.alert').length > 0) {
+                $('.alert').first().after(alertHtml);
+            } else {
+                $('main .container').prepend(alertHtml);
+            }
+
+            setTimeout(function() {
+                $('.alert').fadeOut();
+            }, 5000);
         }
     </script>
 }

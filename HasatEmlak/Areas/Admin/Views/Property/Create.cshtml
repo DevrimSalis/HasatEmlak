@@ -279,7 +279,6 @@
         </div>
     </div>
 </form>
-
 @section Scripts {
     <script>
         $(document).ready(function() {
@@ -288,15 +287,17 @@
         });
 
         // Location dropdowns
-        $('#citySelect').on('change', function() {
-            var cityId = $(this).val();
-            loadDistricts(cityId);
-        });
+        function initializeLocationDropdowns() {
+            $('#citySelect').on('change', function() {
+                var cityId = $(this).val();
+                loadDistricts(cityId);
+            });
 
-        $('#districtSelect').on('change', function() {
-            var districtId = $(this).val();
-            loadNeighborhoods(districtId);
-        });
+            $('#districtSelect').on('change', function() {
+                var districtId = $(this).val();
+                loadNeighborhoods(districtId);
+            });
+        }
 
         function loadDistricts(cityId) {
             var districtSelect = $('#districtSelect');
@@ -306,14 +307,31 @@
             neighborhoodSelect.html('<option value="">İlçe seçin</option>');
 
             if (cityId) {
-                $.get('@Url.Action("GetDistricts", "Property")', { cityId: cityId }, function(data) {
-                    var options = '<option value="">İlçe Seçin</option>';
-                    $.each(data, function(index, district) {
-                        options += '<option value="' + district.id + '">' + district.name + '</option>';
-                    });
-                    districtSelect.html(options);
-                }).fail(function() {
-                    districtSelect.html('<option value="">Hata oluştu</option>');
+                $.ajax({
+                    url: '@Url.Action("GetDistricts", "Property", new { area = "Admin" })',
+                    type: 'GET',
+                    data: { cityId: cityId },
+                    success: function(data) {
+                        if (data.error) {
+                            console.error('Hata:', data.error);
+                            districtSelect.html('<option value="">Hata oluştu</option>');
+                            showAlert('İlçeler yüklenirken hata oluştu: ' + data.message, 'danger');
+                            return;
+                        }
+
+                        var options = '<option value="">İlçe Seçin</option>';
+                        $.each(data, function(index, district) {
+                            options += '<option value="' + district.id + '">' + district.name + '</option>';
+                        });
+                        districtSelect.html(options);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Hatası:', error);
+                        console.error('Status:', status);
+                        console.error('Response:', xhr.responseText);
+                        districtSelect.html('<option value="">Hata oluştu</option>');
+                        showAlert('İlçeler yüklenirken hata oluştu!', 'danger');
+                    }
                 });
             } else {
                 districtSelect.html('<option value="">İlçe Seçin</option>');
@@ -327,14 +345,29 @@
             neighborhoodSelect.html('<option value="">Yükleniyor...</option>');
 
             if (districtId) {
-                $.get('@Url.Action("GetNeighborhoods", "Property")', { districtId: districtId }, function(data) {
-                    var options = '<option value="">Mahalle Seçin</option>';
-                    $.each(data, function(index, neighborhood) {
-                        options += '<option value="' + neighborhood.id + '">' + neighborhood.name + '</option>';
-                    });
-                    neighborhoodSelect.html(options);
-                }).fail(function() {
-                    neighborhoodSelect.html('<option value="">Hata oluştu</option>');
+                $.ajax({
+                    url: '@Url.Action("GetNeighborhoods", "Property", new { area = "Admin" })',
+                    type: 'GET',
+                    data: { districtId: districtId },
+                    success: function(data) {
+                        if (data.error) {
+                            console.error('Hata:', data.error);
+                            neighborhoodSelect.html('<option value="">Hata oluştu</option>');
+                            showAlert('Mahalleler yüklenirken hata oluştu: ' + data.message, 'danger');
+                            return;
+                        }
+
+                        var options = '<option value="">Mahalle Seçin</option>';
+                        $.each(data, function(index, neighborhood) {
+                            options += '<option value="' + neighborhood.id + '">' + neighborhood.name + '</option>';
+                        });
+                        neighborhoodSelect.html(options);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Hatası:', error);
+                        neighborhoodSelect.html('<option value="">Hata oluştu</option>');
+                        showAlert('Mahalleler yüklenirken hata oluştu!', 'danger');
+                    }
                 });
             } else {
                 neighborhoodSelect.html('<option value="">Mahalle Seçin</option>');
@@ -407,6 +440,27 @@
 
         function removeImagePreview(button) {
             $(button).closest('.uploaded-image').remove();
+        }
+
+        // Alert function
+        function showAlert(message, type) {
+            var alertClass = 'alert-' + type;
+            var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                            '<i class="fas fa-exclamation-circle me-2"></i>' + message +
+                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                            '</div>';
+
+            // Add alert to page
+            if ($('.alert').length > 0) {
+                $('.alert').first().after(alertHtml);
+            } else {
+                $('main .container').prepend(alertHtml);
+            }
+
+            // Auto remove after 5 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut();
+            }, 5000);
         }
     </script>
 }

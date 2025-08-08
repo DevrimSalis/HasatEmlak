@@ -227,6 +227,11 @@
                 }
             });
         }
+        function confirmLogout() {
+    if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+        window.location.href = '@Url.Action("Logout", "Auth", new { area = "Admin" })';
+    }
+}
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

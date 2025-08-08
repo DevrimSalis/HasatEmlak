@@ -499,6 +499,44 @@ namespace HasatEmlak.Areas.Admin.Controllers
             await _context.SaveChangesAsync();
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> GetDistricts(int cityId)
+        {
+            try
+            {
+                var districts = await _context.Districts
+                    .Where(d => d.CityId == cityId && d.IsActive)
+                    .OrderBy(d => d.Name)
+                    .Select(d => new { id = d.Id, name = d.Name })
+                    .ToListAsync();
+
+                return Json(districts);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = "İlçeler getirilemedi", message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetNeighborhoods(int districtId)
+        {
+            try
+            {
+                var neighborhoods = await _context.Neighborhoods
+                    .Where(n => n.DistrictId == districtId && n.IsActive)
+                    .OrderBy(n => n.Name)
+                    .Select(n => new { id = n.Id, name = n.Name })
+                    .ToListAsync();
+
+                return Json(neighborhoods);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = "Mahalleler getirilemedi", message = ex.Message });
+            }
+        }
         #endregion
     }
 }
