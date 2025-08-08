@@ -1,0 +1,365 @@
+﻿@model HasatEmlak.Models.Entities.ContactRequest
+
+@{
+    ViewData["Title"] = "Mesaj Detayları";
+}
+
+@section PageActions {
+    <div class="btn-group">
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Mesaj Listesi
+        </a>
+        @if (!Model.IsRead)
+        {
+            <button class="btn btn-admin-success" onclick="markAsRead(@Model.Id)">
+                <i class="fas fa-check me-1"></i>Okundu İşaretle
+            </button>
+        }
+        else
+        {
+            <button class="btn btn-admin-warning" onclick="markAsUnread(@Model.Id)">
+                <i class="fas fa-undo me-1"></i>Okunmadı İşaretle
+            </button>
+        }
+        <button class="btn btn-admin-danger" onclick="deleteMessage(@Model.Id)">
+            <i class="fas fa-trash me-1"></i>Mesajı Sil
+        </button>
+    </div>
+}
+
+<div class="row">
+    <!-- Message Content -->
+    <div class="col-lg-8">
+        <div class="card admin-card mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-envelope me-2"></i>Mesaj İçeriği</h5>
+                <span class="badge @(Model.IsRead ? "bg-success" : "bg-warning")">
+                    @(Model.IsRead ? "Okunmuş" : "Okunmamış")
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <strong>Konu:</strong>
+                        <h4 class="mt-1">@(string.IsNullOrEmpty(Model.Subject) ? "Konu belirtilmemiş" : Model.Subject)</h4>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <strong>Tarih:</strong>
+                        <div class="mt-1">
+                            @Model.CreatedDate.ToString("dd MMMM yyyy, HH:mm")
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <strong>Mesaj:</strong>
+                    <div class="mt-2 p-4 bg-light rounded border-start border-primary border-4">
+                        @Html.Raw(Model.Message.Replace("\n", "<br>"))
+                    </div>
+                </div>
+
+                <!-- Reply Section -->
+                <div class="border-top pt-4">
+                    <h6><i class="fas fa-reply me-2"></i>Yanıt Gönder</h6>
+                    <form id="replyForm">
+                        <input type="hidden" id="contactId" value="@Model.Id">
+                        <div class="mb-3">
+                            <textarea class="form-control" id="replyMessage" rows="5"
+                                      placeholder="Yanıtınızı buraya yazın..."></textarea>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-admin-primary" onclick="sendReply()">
+                                <i class="fas fa-paper-plane me-1"></i>Yanıt Gönder
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="fillQuickReply('Merhaba, mesajınız için teşekkür ederiz. En kısa sürede size geri dönüş yapacağız.')">
+                                Hızlı Yanıt
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Property -->
+        @if (Model.Property != null)
+        {
+            <div class="card admin-card">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-home me-2"></i>İlgili İlan</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            @if (Model.Property.PropertyImages != null && Model.Property.PropertyImages.Any())
+                            {
+                                <img src="/@Model.Property.PropertyImages.FirstOrDefault()?.ImagePath"
+                                     class="img-fluid rounded" alt="@Model.Property.Title">
+                            }
+                            else
+                            {
+                                <div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 120px;">
+                                    <i class="fas fa-home fa-2x text-muted"></i>
+                                </div>
+                            }
+                        </div>
+                        <div class="col-md-9">
+                            <h5>@Model.Property.Title</h5>
+                            <p class="text-muted mb-2">
+                                <i class="fas fa-map-marker-alt me-1"></i>
+                                @Model.Property.District?.Name, @Model.Property.City?.Name
+                            </p>
+                            <p class="mb-2">
+                                <strong class="text-primary">@Model.Property.Price.ToString("N0") ₺</strong>
+                                <span class="badge bg-@(Model.Property.CategoryId == 1 ? "success" : "primary") ms-2">
+                                    @Model.Property.Category?.Name
+                                </span>
+                            </p>
+                            <div class="d-flex gap-2">
+                                <a href="@Url.Action("Details", "Property", new { id = Model.PropertyId })"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-edit me-1"></i>İlanı Düzenle
+                                </a>
+                                <a href="/Property/Details/@Model.PropertyId"
+                                   class="btn btn-outline-success btn-sm" target="_blank">
+                                    <i class="fas fa-external-link-alt me-1"></i>İlanı Görüntüle
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Sender Info -->
+    <div class="col-lg-4">
+        <div class="card admin-card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0"><i class="fas fa-user me-2"></i>Gönderen Bilgileri</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center"
+                         style="width: 60px; height: 60px;">
+                        <i class="fas fa-user fa-2x"></i>
+                    </div>
+                    <h5 class="mt-2 mb-0">@Model.FullName</h5>
+                </div>
+
+                <table class="table table-borderless table-sm">
+                    <tr>
+                        <td class="text-muted"><i class="fas fa-envelope me-2"></i>Email:</td>
+                        <td>
+                            <a href="mailto:@Model.Email" class="text-decoration-none">
+                                @Model.Email
+                            </a>
+                        </td>
+                    </tr>
+                    @if (!string.IsNullOrEmpty(Model.Phone))
+                    {
+                        <tr>
+                            <td class="text-muted"><i class="fas fa-phone me-2"></i>Telefon:</td>
+                            <td>
+                                <a href="tel:@Model.Phone" class="text-decoration-none">
+                                    @Model.Phone
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                    <tr>
+                        <td class="text-muted"><i class="fas fa-calendar me-2"></i>Tarih:</td>
+                        <td>@Model.CreatedDate.ToString("dd.MM.yyyy HH:mm")</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted"><i class="fas fa-eye me-2"></i>Durum:</td>
+                        <td>
+                            <span class="badge @(Model.IsRead ? "bg-success" : "bg-warning")">
+                                @(Model.IsRead ? "Okunmuş" : "Okunmamış")
+                            </span>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="d-grid gap-2 mt-3">
+                    <a href="mailto:@Model.Email" class="btn btn-outline-primary btn-sm">
+                        <i class="fas fa-envelope me-1"></i>Email Gönder
+                    </a>
+                    @if (!string.IsNullOrEmpty(Model.Phone))
+                    {
+                        <a href="tel:@Model.Phone" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-phone me-1"></i>Ara
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card admin-card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h6 class="mb-0"><i class="fas fa-tools me-2"></i>Hızlı İşlemler</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    @if (!Model.IsRead)
+                    {
+                        <button class="btn btn-admin-success" onclick="markAsRead(@Model.Id)">
+                            <i class="fas fa-check me-1"></i>Okundu İşaretle
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="btn btn-admin-warning" onclick="markAsUnread(@Model.Id)">
+                            <i class="fas fa-undo me-1"></i>Okunmadı İşaretle
+                        </button>
+                    }
+                    <button class="btn btn-outline-info" onclick="printMessage()">
+                        <i class="fas fa-print me-1"></i>Yazdır
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="deleteMessage(@Model.Id)">
+                        <i class="fas fa-trash me-1"></i>Mesajı Sil
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Stats -->
+        <div class="card admin-card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-chart-line me-2"></i>İstatistikler</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <h5 class="text-primary mb-0" id="totalMessagesFromUser">-</h5>
+                        <small class="text-muted">Bu Kullanıcıdan<br>Toplam Mesaj</small>
+                    </div>
+                    <div class="col-6">
+                        <h5 class="text-success mb-0" id="messagesThisMonth">-</h5>
+                        <small class="text-muted">Bu Ay<br>Gelen Mesaj</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadMessageStats();
+        });
+
+        function markAsRead(id) {
+            $.ajax({
+                url: '@Url.Action("MarkAsRead")',
+                type: 'POST',
+                data: { id: id },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('İşlem sırasında hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function markAsUnread(id) {
+            $.ajax({
+                url: '@Url.Action("MarkAsUnread")',
+                type: 'POST',
+                data: { id: id },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('İşlem sırasında hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function deleteMessage(id) {
+            if (confirm('Bu mesajı silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz!')) {
+                $.ajax({
+                    url: '@Url.Action("Delete")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Index")';
+                            }, 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Silme işlemi sırasında hata oluştu!', 'danger');
+                    }
+                });
+            }
+        }
+
+        function sendReply() {
+            var contactId = $('#contactId').val();
+            var replyMessage = $('#replyMessage').val();
+
+            if (!replyMessage.trim()) {
+                showAlert('Lütfen bir yanıt yazın!', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("Reply")',
+                type: 'POST',
+                data: {
+                    id: contactId,
+                    replyMessage: replyMessage
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#replyMessage').val('');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Yanıt gönderilirken hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function fillQuickReply(message) {
+            $('#replyMessage').val(message);
+        }
+
+        function printMessage() {
+            window.print();
+        }
+
+        function loadMessageStats() {
+            // Bu fonksiyon daha sonra implement edilebilir
+            $('#totalMessagesFromUser').text('1');
+            $('#messagesThisMonth').text('1');
+        }
+    </script>
+}

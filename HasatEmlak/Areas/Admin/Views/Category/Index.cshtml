@@ -1,0 +1,336 @@
+﻿@model IEnumerable<HasatEmlak.Models.Entities.Category>
+
+@{
+    ViewData["Title"] = "Kategori Yönetimi";
+}
+
+@section PageActions {
+    <button type="button" class="btn btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+        <i class="fas fa-plus me-1"></i>Yeni Kategori Ekle
+    </button>
+}
+
+<!-- Categories List -->
+<div class="card admin-table">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-tags me-2"></i>Kategoriler (@Model.Count())</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="60">Sıra</th>
+                            <th width="80">İkon</th>
+                            <th>Kategori Adı</th>
+                            <th>Açıklama</th>
+                            <th width="100">İlan Sayısı</th>
+                            <th width="100">Durum</th>
+                            <th width="150">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var category in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <span class="badge bg-secondary">#@category.DisplayOrder</span>
+                                </td>
+                                <td>
+                                    <i class="@category.IconClass fa-2x text-primary"></i>
+                                </td>
+                                <td>
+                                    <strong>@category.Name</strong>
+                                </td>
+                                <td>
+                                    <small class="text-muted">@category.Description</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info" id="propertyCount_@category.Id">-</span>
+                                </td>
+                                <td>
+                                    <span class="badge @(category.IsActive ? "bg-success" : "bg-danger")">
+                                        @(category.IsActive ? "Aktif" : "Pasif")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary"
+                                                onclick="editCategory(@category.Id, '@category.Name', '@category.Description', '@category.IconClass')"
+                                                title="Düzenle">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-@(category.IsActive ? "warning" : "success")"
+                                                onclick="toggleStatus(@category.Id)"
+                                                title="Durum Değiştir">
+                                            <i class="fas fa-@(category.IsActive ? "eye-slash" : "eye")"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger"
+                                                onclick="deleteCategory(@category.Id)"
+                                                title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-tags fa-4x text-muted"></i>
+                </div>
+                <h4>Henüz kategori eklenmemiş</h4>
+                <p class="text-muted mb-4">Emlak ilanlarınızı kategorize etmek için kategori ekleyin.</p>
+                <button type="button" class="btn btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                    <i class="fas fa-plus me-1"></i>İlk Kategoriyi Ekle
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Yeni Kategori Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addCategoryForm">
+                    <div class="mb-3">
+                        <label class="form-label">Kategori Adı *</label>
+                        <input type="text" class="form-control" id="add_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="add_description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">İkon Sınıfı (Font Awesome)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i id="add_iconPreview" class="fas fa-tag"></i>
+                            </span>
+                            <input type="text" class="form-control" id="add_iconClass"
+                                   value="fas fa-tag" placeholder="fas fa-tag">
+                        </div>
+                        <small class="text-muted">Örnek: fas fa-home, fas fa-building, fas fa-key</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-admin-primary" onclick="addCategory()">
+                    <i class="fas fa-save me-1"></i>Kategori Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Category Modal -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Kategori Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCategoryForm">
+                    <input type="hidden" id="edit_id">
+                    <div class="mb-3">
+                        <label class="form-label">Kategori Adı *</label>
+                        <input type="text" class="form-control" id="edit_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="edit_description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">İkon Sınıfı (Font Awesome)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i id="edit_iconPreview" class="fas fa-tag"></i>
+                            </span>
+                            <input type="text" class="form-control" id="edit_iconClass"
+                                   placeholder="fas fa-tag">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-admin-primary" onclick="updateCategory()">
+                    <i class="fas fa-save me-1"></i>Güncelle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadPropertyCounts();
+
+            // Icon preview
+            $('#add_iconClass').on('input', function() {
+                var iconClass = $(this).val() || 'fas fa-tag';
+                $('#add_iconPreview').attr('class', iconClass);
+            });
+
+            $('#edit_iconClass').on('input', function() {
+                var iconClass = $(this).val() || 'fas fa-tag';
+                $('#edit_iconPreview').attr('class', iconClass);
+            });
+        });
+
+        function addCategory() {
+            var name = $('#add_name').val();
+            var description = $('#add_description').val();
+            var iconClass = $('#add_iconClass').val();
+
+            if (!name.trim()) {
+                showAlert('Kategori adı gereklidir!', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("Create")',
+                type: 'POST',
+                data: {
+                    name: name,
+                    description: description,
+                    iconClass: iconClass
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#addCategoryModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Kategori eklenirken hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function editCategory(id, name, description, iconClass) {
+            $('#edit_id').val(id);
+            $('#edit_name').val(name);
+            $('#edit_description').val(description);
+            $('#edit_iconClass').val(iconClass);
+            $('#edit_iconPreview').attr('class', iconClass || 'fas fa-tag');
+            $('#editCategoryModal').modal('show');
+        }
+
+        function updateCategory() {
+            var id = $('#edit_id').val();
+            var name = $('#edit_name').val();
+            var description = $('#edit_description').val();
+            var iconClass = $('#edit_iconClass').val();
+
+            if (!name.trim()) {
+                showAlert('Kategori adı gereklidir!', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("Edit")',
+                type: 'POST',
+                data: {
+                    id: id,
+                    name: name,
+                    description: description,
+                    iconClass: iconClass
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#editCategoryModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Kategori güncellenirken hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function toggleStatus(id) {
+            $.ajax({
+                url: '@Url.Action("ToggleStatus")',
+                type: 'POST',
+                data: { id: id },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Durum değiştirilirken hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function deleteCategory(id) {
+            if (confirm('Bu kategoriyi silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz!')) {
+                $.ajax({
+                    url: '@Url.Action("Delete")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Kategori silinirken hata oluştu!', 'danger');
+                    }
+                });
+            }
+        }
+
+        function loadPropertyCounts() {
+            @foreach (var category in Model)
+            {
+                <text>
+                    $.get('/Admin/Property/GetCountByCategory', { categoryId: @category.Id }, function(count) {
+                        $('#propertyCount_@category.Id').text(count);
+                    }).fail(function() {
+                        $('#propertyCount_@category.Id').text('0');
+                    });
+                </text>
+            }
+        }
+    </script>
+}

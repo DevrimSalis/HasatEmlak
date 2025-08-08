@@ -1,0 +1,483 @@
+﻿@model HasatEmlak.Models.ViewModels.PropertyListViewModel
+
+@{
+    ViewData["Title"] = "İlan Yönetimi";
+}
+
+@section PageActions {
+    <div class="btn-group">
+        <a href="@Url.Action("Create")" class="btn btn-admin-primary">
+            <i class="fas fa-plus me-1"></i>Yeni İlan Ekle
+        </a>
+        <button type="button" class="btn btn-outline-secondary dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+            <span class="visually-hidden">Toggle Dropdown</span>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" href="#" onclick="exportData('excel', '@Url.Action("Export")')">
+                    <i class="fas fa-file-excel me-2"></i>Excel'e Aktar
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="#" onclick="exportData('pdf', '@Url.Action("Export")')">
+                    <i class="fas fa-file-pdf me-2"></i>PDF'e Aktar
+                </a>
+            </li>
+        </ul>
+    </div>
+}
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card admin-card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-filter me-2"></i>Filtreler</h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Arama</label>
+                        <input type="text" class="form-control" name="search" value="@Model.SearchModel?.Keywords"
+                               placeholder="Başlık, açıklama, adres...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Kategori</label>
+                        <select class="form-select" name="categoryId">
+                            <option value="">Tümü</option>
+                            @foreach (var category in ViewBag.Categories as IEnumerable<HasatEmlak.Models.Entities.Category>)
+                            {
+                                <option value="@category.Id" selected="@(Model.SearchModel?.CategoryId == category.Id)">
+                                    @category.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Şehir</label>
+                        <select class="form-select" name="cityId">
+                            <option value="">Tümü</option>
+                            @foreach (var city in ViewBag.Cities as IEnumerable<HasatEmlak.Models.Entities.City>)
+                            {
+                                <option value="@city.Id" selected="@(Model.SearchModel?.CityId == city.Id)">
+                                    @city.Name
+                                </option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">Durum</label>
+                        <select class="form-select" name="isActive">
+                            <option value="">Tümü</option>
+                            <option value="true" selected="@(ViewBag.IsActive == true)">Aktif</option>
+                            <option value="false" selected="@(ViewBag.IsActive == false)">Pasif</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-admin-primary">
+                            <i class="fas fa-search me-1"></i>Filtrele
+                        </button>
+                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                            <i class="fas fa-undo me-1"></i>Temizle
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions -->
+<div class="bulk-actions mb-3" style="display: none;">
+    <div class="card border-primary">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-primary">
+                    <span class="selected-count">0</span> ilan seçildi
+                </span>
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-admin-success" id="bulkActivate">
+                        <i class="fas fa-check me-1"></i>Aktif Yap
+                    </button>
+                    <button type="button" class="btn btn-admin-warning" id="bulkDeactivate">
+                        <i class="fas fa-times me-1"></i>Pasif Yap
+                    </button>
+                    <button type="button" class="btn btn-admin-danger" id="bulkDelete">
+                        <i class="fas fa-trash me-1"></i>Sil
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Properties List -->
+<div class="card admin-table">
+    <div class="card-body p-0">
+        @if (Model.Properties != null && Model.Properties.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th width="50">
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                            <th width="100">Resim</th>
+                            <th>İlan Bilgileri</th>
+                            <th width="120">Kategori</th>
+                            <th width="120">Fiyat</th>
+                            <th width="100">Durum</th>
+                            <th width="100">Tarih</th>
+                            <th width="150">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var property in Model.Properties)
+                        {
+                            <tr>
+                                <td>
+                                    <input type="checkbox" name="selectedIds" value="@property.Id" class="form-check-input">
+                                </td>
+                                <td>
+                                    @if (property.PropertyImages != null && property.PropertyImages.Any())
+                                    {
+                                        <img src="/@property.PropertyImages.FirstOrDefault()?.ImagePath"
+                                             class="rounded" width="60" height="60" style="object-fit: cover;"
+                                             alt="@property.Title">
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-light rounded d-flex align-items-center justify-content-center"
+                                             style="width: 60px; height: 60px;">
+                                            <i class="fas fa-image text-muted"></i>
+                                        </div>
+                                    }
+                                </td>
+                                <td>
+                                    <div>
+                                        <h6 class="mb-1">
+                                            @property.Title
+                                            @if (property.IsFeatured)
+                                            {
+                                                <span class="badge badge-featured ms-1">
+                                                    <i class="fas fa-star"></i>
+                                                </span>
+                                            }
+                                        </h6>
+                                        <p class="text-muted small mb-1">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            @property.District?.Name, @property.City?.Name
+                                        </p>
+                                        <div class="small text-muted">
+                                            @if (property.Area.HasValue)
+                                            {
+                                                <span class="me-2"><i class="fas fa-expand-arrows-alt"></i> @property.Area m²</span>
+                                            }
+                                            @if (property.RoomCount.HasValue)
+                                            {
+                                                <span class="me-2"><i class="fas fa-bed"></i> @property.RoomCount oda</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-@(property.CategoryId == 1 ? "success" : "primary")">
+                                        @property.Category?.Name
+                                    </span>
+                                    <br>
+                                    <small class="text-muted">@property.PropertyType?.Name</small>
+                                </td>
+                                <td>
+                                    <span class="fw-bold">@property.Price.ToString("N0") ₺</span>
+                                </td>
+                                <td>
+                                    <span class="badge @(property.IsActive ? "badge-status-active" : "badge-status-inactive")">
+                                        @(property.IsActive ? "Aktif" : "Pasif")
+                                    </span>
+                                </td>
+                                <td>
+                                    <small>
+                                        @property.CreatedDate.ToString("dd.MM.yyyy")
+                                        <br>
+                                        @property.CreatedDate.ToString("HH:mm")
+                                    </small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="@Url.Action("Details", new { id = property.Id })"
+                                           class="btn btn-outline-info" title="Detaylar">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="@Url.Action("Edit", new { id = property.Id })"
+                                           class="btn btn-outline-primary" title="Düzenle">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-outline-warning"
+                                                onclick="toggleStatus(@property.Id, @property.IsActive.ToString().ToLower())"
+                                                title="Durum Değiştir">
+                                            <i class="fas fa-@(property.IsActive ? "eye-slash" : "eye")"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-secondary"
+                                                onclick="toggleFeatured(@property.Id, @property.IsFeatured.ToString().ToLower())"
+                                                title="Öne Çıkar">
+                                            <i class="fas fa-star"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger"
+                                                onclick="deleteItem(@property.Id, '@Url.Action("Delete")', 'ilan')"
+                                                title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            <strong>@((Model.CurrentPage - 1) * 20 + 1)</strong> -
+                            <strong>@Math.Min(Model.CurrentPage * 20, Model.TotalCount)</strong> /
+                            <strong>@Model.TotalCount</strong> ilan gösteriliyor
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                @if (Model.HasPreviousPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("Index", new {
+                                            page = Model.CurrentPage - 1,
+                                            search = Model.SearchModel?.Keywords,
+                                            categoryId = Model.SearchModel?.CategoryId,
+                                            cityId = Model.SearchModel?.CityId,
+                                            isActive = ViewBag.IsActive
+                                        })">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
+
+                                @for (int i = Math.Max(1, Model.CurrentPage - 2); i <= Math.Min(Model.TotalPages, Model.CurrentPage + 2); i++)
+                                {
+                                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new {
+                                            page = i,
+                                            search = Model.SearchModel?.Keywords,
+                                            categoryId = Model.SearchModel?.CategoryId,
+                                            cityId = Model.SearchModel?.CityId,
+                                            isActive = ViewBag.IsActive
+                                        })">
+                                            @i
+                                        </a>
+                                    </li>
+                                }
+
+                                @if (Model.HasNextPage)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("Index", new {
+                                            page = Model.CurrentPage + 1,
+                                            search = Model.SearchModel?.Keywords,
+                                            categoryId = Model.SearchModel?.CategoryId,
+                                            cityId = Model.SearchModel?.CityId,
+                                            isActive = ViewBag.IsActive
+                                        })">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-home fa-4x text-muted"></i>
+                </div>
+                <h4>İlan Bulunamadı</h4>
+                <p class="text-muted mb-4">
+                    @if (!string.IsNullOrEmpty(Model.SearchModel?.Keywords) || Model.SearchModel?.CategoryId.HasValue == true)
+                    {
+                        <text>Arama kriterlerinize uygun ilan bulunmamaktadır.</text>
+                    }
+                    else
+                    {
+                        <text>Henüz hiç ilan eklenmemiş.</text>
+                    }
+                </p>
+                <a href="@Url.Action("Create")" class="btn btn-admin-primary">
+                    <i class="fas fa-plus me-1"></i>İlk İlanı Ekle
+                </a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Load sidebar counts
+            loadSidebarCounts();
+        });
+
+        function toggleStatus(id, currentStatus) {
+            var action = currentStatus ? 'pasif' : 'aktif';
+            var message = `Bu ilanı ${action} yapmak istediğinizden emin misiniz?`;
+
+            if (confirm(message)) {
+                $.ajax({
+                    url: '@Url.Action("ToggleStatus")',
+                    type: 'POST',
+                    data: { id: id, status: !currentStatus },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message || 'İşlem başarısız!', 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Bir hata oluştu. Lütfen tekrar deneyin.', 'danger');
+                    }
+                });
+            }
+        }
+
+        function toggleFeatured(id, isFeatured) {
+            var action = isFeatured ? 'öne çıkarılandan kaldır' : 'öne çıkar';
+
+            if (confirm(`Bu ilanı ${action}mak istediğinizden emin misiniz?`)) {
+                $.ajax({
+                    url: '@Url.Action("ToggleFeatured")',
+                    type: 'POST',
+                    data: { id: id, featured: !isFeatured },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message || 'İşlem başarısız!', 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Bir hata oluştu. Lütfen tekrar deneyin.', 'danger');
+                    }
+                });
+            }
+        }
+
+        function deleteItem(id, url, itemName = 'ilan') {
+            if (confirm(`Bu ${itemName}'ı silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz!`)) {
+                $.ajax({
+                    url: '@Url.Action("Delete")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message || `${itemName} başarıyla silindi!`, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message || 'Silme işlemi başarısız!', 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Bir hata oluştu. Lütfen tekrar deneyin.', 'danger');
+                    }
+                });
+            }
+        }
+
+        // Bulk operations
+        $('#selectAll').on('change', function() {
+            $('input[name="selectedIds"]').prop('checked', $(this).is(':checked'));
+            updateBulkActionButtons();
+        });
+
+        $(document).on('change', 'input[name="selectedIds"]', function() {
+            updateBulkActionButtons();
+
+            var totalCheckboxes = $('input[name="selectedIds"]').length;
+            var checkedCheckboxes = $('input[name="selectedIds"]:checked').length;
+
+            $('#selectAll').prop('indeterminate', checkedCheckboxes > 0 && checkedCheckboxes < totalCheckboxes);
+            $('#selectAll').prop('checked', checkedCheckboxes === totalCheckboxes);
+        });
+
+        function updateBulkActionButtons() {
+            var selectedCount = $('input[name="selectedIds"]:checked').length;
+            var $bulkActions = $('.bulk-actions');
+
+            if (selectedCount > 0) {
+                $bulkActions.show();
+                $bulkActions.find('.selected-count').text(selectedCount);
+            } else {
+                $bulkActions.hide();
+            }
+        }
+
+        $('#bulkActivate').on('click', function() {
+            executeBulkAction('activate', 'Seçili ilanları aktif yap');
+        });
+
+        $('#bulkDeactivate').on('click', function() {
+            executeBulkAction('deactivate', 'Seçili ilanları pasif yap');
+        });
+
+        $('#bulkDelete').on('click', function() {
+            executeBulkAction('delete', 'Seçili ilanları sil');
+        });
+
+        function executeBulkAction(action, confirmMessage) {
+            var selectedIds = [];
+            $('input[name="selectedIds"]:checked').each(function() {
+                selectedIds.push($(this).val());
+            });
+
+            if (selectedIds.length === 0) {
+                showAlert('Lütfen en az bir ilan seçin!', 'warning');
+                return;
+            }
+
+            if (confirm(`${confirmMessage}?\n\n${selectedIds.length} ilan seçildi.`)) {
+                $.ajax({
+                    url: '@Url.Action("BulkAction")',
+                    type: 'POST',
+                    data: {
+                        action: action,
+                        ids: selectedIds
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message || 'İşlem başarısız!', 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Bir hata oluştu. Lütfen tekrar deneyin.', 'danger');
+                    }
+                });
+            }
+        }
+    </script>
+}

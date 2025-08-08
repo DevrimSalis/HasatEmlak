@@ -1,0 +1,509 @@
+﻿@model HasatEmlak.Models.Entities.Property
+
+@{
+    ViewData["Title"] = "İlan Detayları";
+}
+
+@section PageActions {
+    <div class="btn-group">
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>İlan Listesi
+        </a>
+        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-admin-primary">
+            <i class="fas fa-edit me-1"></i>Düzenle
+        </a>
+        <a href="/Property/Details/@Model.Id" class="btn btn-outline-success" target="_blank">
+            <i class="fas fa-external-link-alt me-1"></i>Sitede Görüntüle
+        </a>
+        <div class="btn-group">
+            <button type="button" class="btn btn-outline-danger dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="fas fa-tools me-1"></i>İşlemler
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li>
+                    <button class="dropdown-item" onclick="toggleStatus(@Model.Id, @Model.IsActive.ToString().ToLower())">
+                        <i class="fas fa-@(Model.IsActive ? "eye-slash" : "eye") me-2"></i>
+                        @(Model.IsActive ? "Pasif Yap" : "Aktif Yap")
+                    </button>
+                </li>
+                <li>
+                    <button class="dropdown-item" onclick="toggleFeatured(@Model.Id, @Model.IsFeatured.ToString().ToLower())">
+                        <i class="fas fa-star me-2"></i>
+                        @(Model.IsFeatured ? "Öne Çıkarılandan Kaldır" : "Öne Çıkar")
+                    </button>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <button class="dropdown-item text-danger" onclick="deleteProperty(@Model.Id)">
+                        <i class="fas fa-trash me-2"></i>İlanı Sil
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+}
+
+<div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+        <!-- Basic Info -->
+        <div class="card admin-card mb-4">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>İlan Bilgileri</h5>
+                <div>
+                    <span class="badge @(Model.IsActive ? "bg-success" : "bg-danger") me-2">
+                        @(Model.IsActive ? "Aktif" : "Pasif")
+                    </span>
+                    @if (Model.IsFeatured)
+                    {
+                        <span class="badge bg-warning">
+                            <i class="fas fa-star me-1"></i>Öne Çıkan
+                        </span>
+                    }
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>İlan No:</strong> #@Model.Id
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Kategori:</strong>
+                        <span class="badge bg-@(Model.CategoryId == 1 ? "success" : "primary")">
+                            @Model.Category?.Name
+                        </span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Emlak Türü:</strong> @Model.PropertyType?.Name
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Fiyat:</strong>
+                        <span class="fw-bold text-primary fs-5">@Model.Price.ToString("N0") ₺</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <strong>Başlık:</strong>
+                    <h4 class="mt-2">@Model.Title</h4>
+                </div>
+
+                <div class="mb-0">
+                    <strong>Açıklama:</strong>
+                    <div class="mt-2 p-3 bg-light rounded">
+                        @Html.Raw(Model.Description.Replace("\n", "<br>"))
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Property Features -->
+        <div class="card admin-card mb-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-home me-2"></i>Emlak Özellikleri</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    @if (Model.Area.HasValue)
+                    {
+                        <div class="col-md-4 col-6 mb-3">
+                            <div class="feature-card text-center p-3 border rounded">
+                                <i class="fas fa-expand-arrows-alt text-primary fa-2x mb-2"></i>
+                                <div class="fw-bold fs-4">@Model.Area</div>
+                                <small class="text-muted">m² Alan</small>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.RoomCount.HasValue)
+                    {
+                        <div class="col-md-4 col-6 mb-3">
+                            <div class="feature-card text-center p-3 border rounded">
+                                <i class="fas fa-bed text-primary fa-2x mb-2"></i>
+                                <div class="fw-bold fs-4">@Model.RoomCount</div>
+                                <small class="text-muted">Oda Sayısı</small>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.BathroomCount.HasValue)
+                    {
+                        <div class="col-md-4 col-6 mb-3">
+                            <div class="feature-card text-center p-3 border rounded">
+                                <i class="fas fa-bath text-primary fa-2x mb-2"></i>
+                                <div class="fw-bold fs-4">@Model.BathroomCount</div>
+                                <small class="text-muted">Banyo</small>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.FloorNumber.HasValue)
+                    {
+                        <div class="col-md-4 col-6 mb-3">
+                            <div class="feature-card text-center p-3 border rounded">
+                                <i class="fas fa-layer-group text-primary fa-2x mb-2"></i>
+                                <div class="fw-bold fs-4">@Model.FloorNumber</div>
+                                <small class="text-muted">Bulunduğu Kat</small>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.TotalFloors.HasValue)
+                    {
+                        <div class="col-md-4 col-6 mb-3">
+                            <div class="feature-card text-center p-3 border rounded">
+                                <i class="fas fa-building text-primary fa-2x mb-2"></i>
+                                <div class="fw-bold fs-4">@Model.TotalFloors</div>
+                                <small class="text-muted">Toplam Kat</small>
+                            </div>
+                        </div>
+                    }
+                    @if (Model.BuildingAge.HasValue)
+                    {
+                        <div class="col-md-4 col-6 mb-3">
+                            <div class="feature-card text-center p-3 border rounded">
+                                <i class="fas fa-calendar text-primary fa-2x mb-2"></i>
+                                <div class="fw-bold fs-4">@Model.BuildingAge</div>
+                                <small class="text-muted">Bina Yaşı</small>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Location -->
+        <div class="card admin-card mb-4">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Konum Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <strong>Şehir:</strong> @Model.City?.Name
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>İlçe:</strong> @Model.District?.Name
+                    </div>
+                    @if (Model.Neighborhood != null)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <strong>Mahalle:</strong> @Model.Neighborhood?.Name
+                        </div>
+                    }
+                    <div class="col-12 mb-3">
+                        <strong>Adres:</strong>
+                        <div class="mt-1">@Model.Address</div>
+                    </div>
+                    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+                    {
+                        <div class="col-md-6 mb-3">
+                            <strong>Enlem:</strong> @Model.Latitude?.ToString("F6")
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <strong>Boylam:</strong> @Model.Longitude?.ToString("F6")
+                        </div>
+                        <div class="col-12">
+                            <div id="propertyMap" style="height: 300px; border-radius: 8px;" class="border"></div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Images -->
+        @if (Model.PropertyImages != null && Model.PropertyImages.Any())
+        {
+            <div class="card admin-card mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-images me-2"></i>İlan Resimleri (@Model.PropertyImages.Count())</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @foreach (var image in Model.PropertyImages.OrderBy(i => i.DisplayOrder))
+                        {
+                            <div class="col-lg-4 col-md-6 mb-3">
+                                <div class="position-relative">
+                                    <img src="/@image.ImagePath" class="img-fluid rounded shadow-sm"
+                                         alt="@image.AltText" style="height: 200px; width: 100%; object-fit: cover;"
+                                         data-bs-toggle="modal" data-bs-target="#imageModal"
+                                         onclick="showImageModal('/@image.ImagePath', '@image.AltText')">
+                                    @if (image.IsMainImage)
+                                    {
+                                        <span class="badge bg-primary position-absolute top-0 start-0 m-2">
+                                            <i class="fas fa-star me-1"></i>Ana Resim
+                                        </span>
+                                    }
+                                    <div class="position-absolute bottom-0 end-0 m-2">
+                                        <button class="btn btn-danger btn-sm" onclick="deleteImage(@image.Id)"
+                                                title="Resmi Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Quick Stats -->
+        <div class="card admin-card mb-4">
+            <div class="card-header bg-dark text-white">
+                <h6 class="mb-0"><i class="fas fa-chart-bar me-2"></i>İlan İstatistikleri</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-12 mb-3">
+                        <div class="border-bottom pb-2 mb-2">
+                            <h4 class="text-primary mb-0">@Model.Price.ToString("N0")</h4>
+                            <small class="text-muted">Fiyat (₺)</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mb-2">
+                            <strong class="text-success">@Model.CreatedDate.ToString("dd.MM.yyyy")</strong>
+                            <br><small class="text-muted">Oluşturulma</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="mb-2">
+                            <strong class="text-info">
+                                @if (Model.UpdatedDate.HasValue)
+                                {
+                                    @Model.UpdatedDate.Value.ToString("dd.MM.yyyy")
+                                }
+                                else
+                                {
+                                    <text>-</text>
+                                }
+                            </strong>
+                            <br><small class="text-muted">Son Güncelleme</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card admin-card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h6 class="mb-0"><i class="fas fa-bolt me-2"></i>Hızlı İşlemler</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-admin-primary">
+                        <i class="fas fa-edit me-2"></i>İlanı Düzenle
+                    </a>
+                    <button class="btn btn-admin-warning" onclick="toggleFeatured(@Model.Id, @Model.IsFeatured.ToString().ToLower())">
+                        <i class="fas fa-star me-2"></i>@(Model.IsFeatured ? "Öne Çıkarılandan Kaldır" : "Öne Çıkar")
+                    </button>
+                    <button class="btn btn-admin-info" onclick="toggleStatus(@Model.Id, @Model.IsActive.ToString().ToLower())">
+                        <i class="fas fa-@(Model.IsActive ? "eye-slash" : "eye") me-2"></i>@(Model.IsActive ? "Pasif Yap" : "Aktif Yap")
+                    </button>
+                    <a href="/Property/Details/@Model.Id" class="btn btn-admin-success" target="_blank">
+                        <i class="fas fa-external-link-alt me-2"></i>Sitede Görüntüle
+                    </a>
+                    <hr>
+                    <button class="btn btn-outline-danger" onclick="deleteProperty(@Model.Id)">
+                        <i class="fas fa-trash me-2"></i>İlanı Sil
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Technical Info -->
+        <div class="card admin-card">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-cog me-2"></i>Teknik Bilgiler</h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-sm table-borderless mb-0">
+                    <tr>
+                        <td class="text-muted">ID:</td>
+                        <td class="fw-bold">#@Model.Id</td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Durum:</td>
+                        <td>
+                            <span class="badge @(Model.IsActive ? "bg-success" : "bg-danger")">
+                                @(Model.IsActive ? "Aktif" : "Pasif")
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Öne Çıkan:</td>
+                        <td>
+                            @if (Model.IsFeatured)
+                            {
+                                <span class="badge bg-warning"><i class="fas fa-star"></i> Evet</span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Hayır</span>
+                            }
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-muted">Resim Sayısı:</td>
+                        <td>@(Model.PropertyImages?.Count() ?? 0)</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">İlan Resmi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="modalImage" src="" class="img-fluid rounded" alt="">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+            {
+                <text>initializeMap();</text>
+            }
+        });
+
+        @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+        {
+            <text>
+            function initializeMap() {
+                var propertyLocation = {
+                    lat: @Model.Latitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    lng: @Model.Longitude.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                };
+
+                var map = new google.maps.Map(document.getElementById('propertyMap'), {
+                    zoom: 15,
+                    center: propertyLocation,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                });
+
+                var marker = new google.maps.Marker({
+                    position: propertyLocation,
+                    map: map,
+                    title: '@Model.Title'
+                });
+            }
+            </text>
+        }
+
+        function showImageModal(imageSrc, altText) {
+            $('#modalImage').attr('src', imageSrc).attr('alt', altText);
+        }
+
+        function toggleStatus(id, currentStatus) {
+            var action = currentStatus ? 'pasif' : 'aktif';
+
+            if (confirm(`Bu ilanı ${action} yapmak istediğinizden emin misiniz?`)) {
+                $.ajax({
+                    url: '@Url.Action("ToggleStatus")',
+                    type: 'POST',
+                    data: { id: id, status: !currentStatus },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('İşlem sırasında hata oluştu!', 'danger');
+                    }
+                });
+            }
+        }
+
+        function toggleFeatured(id, isFeatured) {
+            var action = isFeatured ? 'öne çıkarılandan kaldır' : 'öne çıkar';
+
+            if (confirm(`Bu ilanı ${action}mak istediğinizden emin misiniz?`)) {
+                $.ajax({
+                    url: '@Url.Action("ToggleFeatured")',
+                    type: 'POST',
+                    data: { id: id, featured: !isFeatured },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('İşlem sırasında hata oluştu!', 'danger');
+                    }
+                });
+            }
+        }
+
+        function deleteProperty(id) {
+            if (confirm('Bu ilanı silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz!')) {
+                $.ajax({
+                    url: '@Url.Action("Delete")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                window.location.href = '@Url.Action("Index")';
+                            }, 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Silme işlemi sırasında hata oluştu!', 'danger');
+                    }
+                });
+            }
+        }
+
+        function deleteImage(imageId) {
+            if (confirm('Bu resmi silmek istediğinizden emin misiniz?')) {
+                $.ajax({
+                    url: '@Url.Action("DeleteImage")',
+                    type: 'POST',
+                    data: { imageId: imageId },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Resim silinirken hata oluştu!', 'danger');
+                    }
+                });
+            }
+        }
+    </script>
+
+    @if (Model.Latitude.HasValue && Model.Longitude.HasValue)
+    {
+        <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&callback=initializeMap"></script>
+    }
+}

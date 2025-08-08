@@ -1,0 +1,343 @@
+﻿@model HasatEmlak.Models.ViewModels.AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+@section PageActions {
+    <div class="btn-group">
+        <button type="button" class="btn btn-admin-primary dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="fas fa-plus me-1"></i>Yeni Ekle
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+                <a class="dropdown-item" href="@Url.Action("Create", "Property")">
+                    <i class="fas fa-home me-2"></i>Yeni İlan
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item" href="@Url.Action("Create", "Category")">
+                    <i class="fas fa-tags me-2"></i>Yeni Kategori
+                </a>
+            </li>
+        </ul>
+    </div>
+}
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card bg-primary">
+            <div class="stats-icon">
+                <i class="fas fa-home"></i>
+            </div>
+            <div class="stats-number">@Model.TotalProperties</div>
+            <div class="stats-label">Toplam İlan</div>
+            <div class="stats-change">
+                <small><i class="fas fa-arrow-up"></i> +@Model.PropertiesThisMonth bu ay</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card bg-success">
+            <div class="stats-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="stats-number">@Model.ActiveProperties</div>
+            <div class="stats-label">Aktif İlan</div>
+            <div class="stats-change">
+                <small>Toplam ilanların %@(Model.TotalProperties > 0 ? Math.Round((decimal)Model.ActiveProperties / Model.TotalProperties * 100, 1) : 0)'i</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card bg-warning">
+            <div class="stats-icon">
+                <i class="fas fa-envelope"></i>
+            </div>
+            <div class="stats-number">@Model.UnreadMessages</div>
+            <div class="stats-label">Okunmamış Mesaj</div>
+            <div class="stats-change">
+                @if (Model.UnreadMessages > 0)
+                {
+                    <small><i class="fas fa-exclamation-circle"></i> Yanıt bekliyor</small>
+                }
+                else
+                {
+                    <small><i class="fas fa-check"></i> Hepsi okundu</small>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stats-card bg-info">
+            <div class="stats-icon">
+                <i class="fas fa-lira-sign"></i>
+            </div>
+            <div class="stats-number">@Model.AveragePropertyPrice.ToString("N0")</div>
+            <div class="stats-label">Ortalama Fiyat (₺)</div>
+            <div class="stats-change">
+                <small>Toplam: @Model.TotalSalesValue.ToString("N0") ₺</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Properties -->
+    <div class="col-lg-8 mb-4">
+        <div class="card admin-card">
+            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-clock me-2"></i>Son Eklenen İlanlar</h5>
+                <a href="@Url.Action("Index", "Property")" class="btn btn-light btn-sm">
+                    Tümünü Gör <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>İlan</th>
+                                <th>Kategori</th>
+                                <th>Fiyat</th>
+                                <th>Durum</th>
+                                <th>Tarih</th>
+                                <th>İşlemler</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentPropertiesTable">
+                            <!-- AJAX ile yüklenecek -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions & Stats -->
+    <div class="col-lg-4 mb-4">
+        <!-- Quick Actions -->
+        <div class="card admin-card mb-4">
+            <div class="card-header bg-secondary text-white">
+                <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Hızlı İşlemler</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("Create", "Property")" class="btn btn-admin-primary">
+                        <i class="fas fa-plus me-2"></i>Yeni İlan Ekle
+                    </a>
+                    <a href="@Url.Action("Index", "Contact")" class="btn btn-admin-warning">
+                        <i class="fas fa-envelope me-2"></i>Mesajları Görüntüle
+                        @if (Model.UnreadMessages > 0)
+                        {
+                            <span class="badge bg-danger ms-1">@Model.UnreadMessages</span>
+                        }
+                    </a>
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-admin-success" target="_blank">
+                        <i class="fas fa-eye me-2"></i>Siteyi Görüntüle
+                    </a>
+                    <button class="btn btn-admin-info" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt me-2"></i>Verileri Yenile
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Distribution -->
+        <div class="card admin-card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Kategori Dağılımı</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var stat in Model.CategoryStats)
+                {
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">@stat.CategoryName</span>
+                            <span class="text-muted">@stat.Count ilan</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-@(stat.CategoryName == "Satılık" ? "success" : "primary")"
+                                 role="progressbar" style="width: @stat.Percentage%"></div>
+                        </div>
+                        <small class="text-muted">%@stat.Percentage.ToString("F1")</small>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Monthly Chart -->
+<div class="row">
+    <div class="col-12">
+        <div class="card admin-card">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Son 6 Ay İlan Trend Grafiği</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="monthlyChart" width="400" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Cities -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card admin-card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>En Popüler Şehirler</h5>
+            </div>
+            <div class="card-body">
+                @foreach (var city in Model.CityStats)
+                {
+                    <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                        <div>
+                            <strong>@city.CityName</strong>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-primary">@city.Count ilan</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card admin-card">
+            <div class="card-header bg-warning text-white">
+                <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Sistem Durumu</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="mb-2">
+                            <i class="fas fa-server fa-2x text-success"></i>
+                        </div>
+                        <h6>Sunucu</h6>
+                        <small class="text-success">Çevrimiçi</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="mb-2">
+                            <i class="fas fa-database fa-2x text-success"></i>
+                        </div>
+                        <h6>Veritabanı</h6>
+                        <small class="text-success">Bağlı</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="mb-2">
+                            <i class="fas fa-shield-alt fa-2x text-success"></i>
+                        </div>
+                        <h6>Güvenlik</h6>
+                        <small class="text-success">Aktif</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        $(document).ready(function() {
+            loadRecentProperties();
+            initializeChart();
+
+            // Auto refresh every 5 minutes
+            setInterval(function() {
+                refreshDashboard();
+            }, 300000);
+        });
+
+        function loadRecentProperties() {
+            $.get('@Url.Action("GetRecentProperties", "Property", new { area = "Admin" })', function(data) {
+                var html = '';
+                if (data.length === 0) {
+                    html = '<tr><td colspan="6" class="text-center text-muted py-4">Henüz ilan bulunmuyor</td></tr>';
+                } else {
+                    $.each(data, function(index, property) {
+                        var statusClass = property.isActive ? 'success' : 'danger';
+                        var statusText = property.isActive ? 'Aktif' : 'Pasif';
+
+                        html += '<tr>' +
+                            '<td>' +
+                                '<div class="d-flex align-items-center">' +
+                                    '<img src="' + (property.imagePath || 'https://via.placeholder.com/50x50') + '" class="rounded me-2" width="50" height="50">' +
+                                    '<div>' +
+                                        '<div class="fw-bold">' + property.title + '</div>' +
+                                        '<small class="text-muted">' + property.address + '</small>' +
+                                    '</div>' +
+                                '</div>' +
+                            '</td>' +
+                            '<td><span class="badge bg-' + (property.categoryId === 1 ? 'success' : 'primary') + '">' + property.categoryName + '</span></td>' +
+                            '<td class="fw-bold">' + property.price.toLocaleString() + ' ₺</td>' +
+                            '<td><span class="badge bg-' + statusClass + '">' + statusText + '</span></td>' +
+                            '<td>' + new Date(property.createdDate).toLocaleDateString('tr-TR') + '</td>' +
+                            '<td>' +
+                                '<div class="btn-group btn-group-sm">' +
+                                    '<a href="/Admin/Property/Edit/' + property.id + '" class="btn btn-outline-primary btn-sm"><i class="fas fa-edit"></i></a>' +
+                                    '<a href="/Property/Details/' + property.id + '" class="btn btn-outline-info btn-sm" target="_blank"><i class="fas fa-eye"></i></a>' +
+                                '</div>' +
+                            '</td>' +
+                        '</tr>';
+                    });
+                }
+                $('#recentPropertiesTable').html(html);
+            });
+        }
+
+        function initializeChart() {
+            var ctx = document.getElementById('monthlyChart').getContext('2d');
+            var monthlyData = @Html.Raw(Json.Serialize(Model.MonthlyStats.Select(m => new { month = m.Month, count = m.PropertyCount })));
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: monthlyData.map(d => d.month),
+                    datasets: [{
+                        label: 'İlan Sayısı',
+                        data: monthlyData.map(d => d.count),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function refreshDashboard() {
+            showLoadingOverlay();
+            location.reload();
+        }
+
+        function showLoadingOverlay() {
+            $('body').append('<div class="loading-overlay"><div class="loading-spinner"></div></div>');
+        }
+    </script>
+}

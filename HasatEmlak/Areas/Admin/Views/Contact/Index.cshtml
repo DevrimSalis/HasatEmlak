@@ -1,0 +1,460 @@
+﻿@model IEnumerable<HasatEmlak.Models.Entities.ContactRequest>
+
+@{
+    ViewData["Title"] = "İletişim Mesajları";
+    var unreadCount = Model.Count(c => !c.IsRead);
+}
+
+@section PageActions {
+    <div class="btn-group">
+        <button type="button" class="btn btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown">
+            <i class="fas fa-filter me-1"></i>Filtrele
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="@Url.Action("Index")">Tüm Mesajlar</a></li>
+            <li><a class="dropdown-item" href="@Url.Action("Index", new { isRead = false })">Okunmamış</a></li>
+            <li><a class="dropdown-item" href="@Url.Action("Index", new { isRead = true })">Okunmuş</a></li>
+        </ul>
+    </div>
+}
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>@ViewBag.TotalCount</h4>
+                        <p class="mb-0">Toplam Mesaj</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-envelope fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>@unreadCount</h4>
+                        <p class="mb-0">Okunmamış</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-exclamation-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>@(ViewBag.TotalCount - unreadCount)</h4>
+                        <p class="mb-0">Okunmuş</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>@Model.Count(c => c.CreatedDate.Date == DateTime.Today)</h4>
+                        <p class="mb-0">Bugün Gelen</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-calendar-day fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card admin-card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-search me-2"></i>Arama ve Filtreler</h6>
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Arama</label>
+                        <input type="text" class="form-control" name="search" value="@ViewBag.Search"
+                               placeholder="Ad, email, konu, mesaj...">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Durum</label>
+                        <select class="form-select" name="isRead">
+                            <option value="">Tümü</option>
+                            <option value="false" selected="@(ViewBag.IsRead == false)">Okunmamış</option>
+                            <option value="true" selected="@(ViewBag.IsRead == true)">Okunmuş</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end gap-2">
+                        <button type="submit" class="btn btn-admin-primary">
+                            <i class="fas fa-search me-1"></i>Ara
+                        </button>
+                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                            <i class="fas fa-undo me-1"></i>Temizle
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Actions -->
+<div class="bulk-actions mb-3" style="display: none;">
+    <div class="card border-primary">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-bold text-primary">
+                    <span class="selected-count">0</span> mesaj seçildi
+                </span>
+                <div class="btn-group btn-group-sm">
+                    <button type="button" class="btn btn-admin-success" id="bulkRead">
+                        <i class="fas fa-check me-1"></i>Okundu İşaretle
+                    </button>
+                    <button type="button" class="btn btn-admin-warning" id="bulkUnread">
+                        <i class="fas fa-times me-1"></i>Okunmadı İşaretle
+                    </button>
+                    <button type="button" class="btn btn-admin-danger" id="bulkDelete">
+                        <i class="fas fa-trash me-1"></i>Sil
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Messages List -->
+<div class="card admin-table">
+    <div class="card-body p-0">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th width="50">
+                                <input type="checkbox" id="selectAll" class="form-check-input">
+                            </th>
+                            <th width="50">Durum</th>
+                            <th>Gönderen</th>
+                            <th>Konu</th>
+                            <th>İlan</th>
+                            <th width="120">Tarih</th>
+                            <th width="120">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var contact in Model)
+                        {
+                            <tr class="@(!contact.IsRead ? "table-warning" : "")">
+                                <td>
+                                    <input type="checkbox" name="selectedIds" value="@contact.Id" class="form-check-input">
+                                </td>
+                                <td>
+                                    @if (!contact.IsRead)
+                                    {
+                                        <i class="fas fa-circle text-warning" title="Okunmamış"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-check-circle text-success" title="Okunmuş"></i>
+                                    }
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>@contact.FullName</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            <i class="fas fa-envelope me-1"></i>@contact.Email
+                                        </small>
+                                        @if (!string.IsNullOrEmpty(contact.Phone))
+                                        {
+                                            <br>
+                                            <small class="text-muted">
+                                                <i class="fas fa-phone me-1"></i>@contact.Phone
+                                            </small>
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>@(string.IsNullOrEmpty(contact.Subject) ? "Konu yok" : contact.Subject)</strong>
+                                        <br>
+                                        <small class="text-muted">
+                                            @(contact.Message.Length > 100 ? contact.Message.Substring(0, 100) + "..." : contact.Message)
+                                        </small>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (contact.Property != null)
+                                    {
+                                        <a href="@Url.Action("Details", "Property", new { id = contact.PropertyId })"
+                                           class="text-decoration-none">
+                                            <small>@contact.Property.Title</small>
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <small class="text-muted">Genel Mesaj</small>
+                                    }
+                                </td>
+                                <td>
+                                    <small>
+                                        @contact.CreatedDate.ToString("dd.MM.yyyy")
+                                        <br>
+                                        @contact.CreatedDate.ToString("HH:mm")
+                                    </small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="@Url.Action("Details", new { id = contact.Id })"
+                                           class="btn btn-outline-info" title="Detaylar">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @if (!contact.IsRead)
+                                        {
+                                            <button type="button" class="btn btn-outline-success"
+                                                    onclick="markAsRead(@contact.Id)" title="Okundu İşaretle">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" class="btn btn-outline-warning"
+                                                    onclick="markAsUnread(@contact.Id)" title="Okunmadı İşaretle">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        }
+                                        <button type="button" class="btn btn-outline-danger"
+                                                onclick="deleteMessage(@contact.Id)" title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (ViewBag.TotalPages > 1)
+            {
+                <div class="card-footer">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted">
+                            <strong>@((ViewBag.CurrentPage - 1) * 20 + 1)</strong> -
+                            <strong>@Math.Min((int)ViewBag.CurrentPage * 20, (int)ViewBag.TotalCount)</strong> /
+                            <strong>@ViewBag.TotalCount</strong> mesaj gösteriliyor
+                        </div>
+                        <nav>
+                            <ul class="pagination pagination-sm mb-0">
+                                @if (ViewBag.CurrentPage > 1)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("Index", new {
+                                            page = (int)ViewBag.CurrentPage - 1,
+                                            search = ViewBag.Search,
+                                            isRead = ViewBag.IsRead
+                                        })">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </a>
+                                    </li>
+                                }
+
+                                @for (int i = Math.Max(1, (int)ViewBag.CurrentPage - 2); i <= Math.Min((int)ViewBag.TotalPages, (int)ViewBag.CurrentPage + 2); i++)
+                                {
+                                    <li class="page-item @(i == ViewBag.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="@Url.Action("Index", new {
+                                            page = i,
+                                            search = ViewBag.Search,
+                                            isRead = ViewBag.IsRead
+                                        })">
+                                            @i
+                                        </a>
+                                    </li>
+                                }
+
+                                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                                {
+                                    <li class="page-item">
+                                        <a class="page-link" href="@Url.Action("Index", new {
+                                            page = (int)ViewBag.CurrentPage + 1,
+                                            search = ViewBag.Search,
+                                            isRead = ViewBag.IsRead
+                                        })">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-envelope-open fa-4x text-muted"></i>
+                </div>
+                <h4>Mesaj Bulunamadı</h4>
+                <p class="text-muted mb-4">
+                    @if (!string.IsNullOrEmpty(ViewBag.Search as string) || ViewBag.IsRead != null)
+                    {
+                        <text>Arama kriterlerinize uygun mesaj bulunmamaktadır.</text>
+                    }
+                    else
+                    {
+                        <text>Henüz hiç iletişim mesajı gelmemiş.</text>
+                    }
+                </p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Auto refresh every 30 seconds
+            setInterval(function() {
+                loadSidebarCounts();
+            }, 30000);
+        });
+
+        function markAsRead(id) {
+            $.ajax({
+                url: '@Url.Action("MarkAsRead")',
+                type: 'POST',
+                data: { id: id },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('İşlem sırasında hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function markAsUnread(id) {
+            $.ajax({
+                url: '@Url.Action("MarkAsUnread")',
+                type: 'POST',
+                data: { id: id },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('İşlem sırasında hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function deleteMessage(id) {
+            if (confirm('Bu mesajı silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz!')) {
+                $.ajax({
+                    url: '@Url.Action("Delete")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Silme işlemi sırasında hata oluştu!', 'danger');
+                    }
+                });
+            }
+        }
+
+        // Bulk operations
+        $('#bulkRead').on('click', function() {
+            executeBulkAction('read', 'Seçili mesajları okundu işaretle');
+        });
+
+        $('#bulkUnread').on('click', function() {
+            executeBulkAction('unread', 'Seçili mesajları okunmadı işaretle');
+        });
+
+        $('#bulkDelete').on('click', function() {
+            executeBulkAction('delete', 'Seçili mesajları sil');
+        });
+
+        function executeBulkAction(action, confirmMessage) {
+            var selectedIds = [];
+            $('input[name="selectedIds"]:checked').each(function() {
+                selectedIds.push($(this).val());
+            });
+
+            if (selectedIds.length === 0) {
+                showAlert('Lütfen en az bir mesaj seçin!', 'warning');
+                return;
+            }
+
+            if (confirm(`${confirmMessage}?\n\n${selectedIds.length} mesaj seçildi.`)) {
+                $.ajax({
+                    url: '@Url.Action("BulkAction")',
+                    type: 'POST',
+                    data: {
+                        action: action,
+                        ids: selectedIds
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('İşlem sırasında hata oluştu!', 'danger');
+                    }
+                });
+            }
+        }
+    </script>
+}

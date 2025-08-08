@@ -1,0 +1,412 @@
+﻿@model HasatEmlak.Models.ViewModels.PropertyCreateViewModel
+
+@{
+    ViewData["Title"] = "Yeni İlan Ekle";
+}
+
+@section PageActions {
+    <div class="btn-group">
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>İlan Listesi
+        </a>
+    </div>
+}
+
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="admin-form">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="row">
+        <!-- Basic Information -->
+        <div class="col-lg-8">
+            <div class="card admin-card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>Temel Bilgiler</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12 mb-3">
+                            <label asp-for="Title" class="form-label">İlan Başlığı *</label>
+                            <input asp-for="Title" class="form-control" placeholder="Örn: Çankaya'da Satılık Lüks Daire">
+                            <span asp-validation-for="Title" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="CategoryId" class="form-label">Kategori *</label>
+                            <select asp-for="CategoryId" class="form-select">
+                                <option value="">Kategori Seçin</option>
+                                @foreach (var category in ViewBag.Categories as IEnumerable<HasatEmlak.Models.Entities.Category>)
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CategoryId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="PropertyTypeId" class="form-label">Emlak Türü *</label>
+                            <select asp-for="PropertyTypeId" class="form-select">
+                                <option value="">Emlak Türü Seçin</option>
+                                @foreach (var type in ViewBag.PropertyTypes as IEnumerable<HasatEmlak.Models.Entities.PropertyType>)
+                                {
+                                    <option value="@type.Id">@type.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="PropertyTypeId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label asp-for="Description" class="form-label">Açıklama *</label>
+                            <textarea asp-for="Description" class="form-control" rows="6"
+                                      placeholder="İlan hakkında detaylı bilgi yazın..."></textarea>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Property Details -->
+            <div class="card admin-card mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-home me-2"></i>Emlak Özellikleri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Price" class="form-label">Fiyat (₺) *</label>
+                            <input asp-for="Price" type="number" class="form-control" placeholder="0" min="0">
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Area" class="form-label">Alan (m²)</label>
+                            <input asp-for="Area" type="number" class="form-control" placeholder="0" min="1">
+                            <span asp-validation-for="Area" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="RoomCount" class="form-label">Oda Sayısı</label>
+                            <select asp-for="RoomCount" class="form-select">
+                                <option value="">Seçin</option>
+                                <option value="1">1+0</option>
+                                <option value="2">1+1</option>
+                                <option value="3">2+1</option>
+                                <option value="4">3+1</option>
+                                <option value="5">4+1</option>
+                                <option value="6">5+1</option>
+                                <option value="7">6+1 ve üzeri</option>
+                            </select>
+                            <span asp-validation-for="RoomCount" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="BathroomCount" class="form-label">Banyo Sayısı</label>
+                            <select asp-for="BathroomCount" class="form-select">
+                                <option value="">Seçin</option>
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <option value="@i">@i</option>
+                                }
+                            </select>
+                            <span asp-validation-for="BathroomCount" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="FloorNumber" class="form-label">Bulunduğu Kat</label>
+                            <input asp-for="FloorNumber" type="number" class="form-control" placeholder="0">
+                            <span asp-validation-for="FloorNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="TotalFloors" class="form-label">Toplam Kat</label>
+                            <input asp-for="TotalFloors" type="number" class="form-control" placeholder="0" min="1">
+                            <span asp-validation-for="TotalFloors" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="BuildingAge" class="form-label">Bina Yaşı</label>
+                            <input asp-for="BuildingAge" type="number" class="form-control" placeholder="0" min="0">
+                            <span asp-validation-for="BuildingAge" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <div class="form-check form-switch mt-4">
+                                <input asp-for="IsFeatured" class="form-check-input" type="checkbox">
+                                <label asp-for="IsFeatured" class="form-check-label fw-bold">
+                                    Öne Çıkarılsın
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="card admin-card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Konum Bilgileri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="CityId" class="form-label">Şehir *</label>
+                            <select asp-for="CityId" id="citySelect" class="form-select">
+                                <option value="">Şehir Seçin</option>
+                                @foreach (var city in ViewBag.Cities as IEnumerable<HasatEmlak.Models.Entities.City>)
+                                {
+                                    <option value="@city.Id">@city.Name</option>
+                                }
+                            </select>
+                            <span asp-validation-for="CityId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="DistrictId" class="form-label">İlçe *</label>
+                            <select asp-for="DistrictId" id="districtSelect" class="form-select">
+                                <option value="">İlçe Seçin</option>
+                            </select>
+                            <span asp-validation-for="DistrictId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="NeighborhoodId" class="form-label">Mahalle</label>
+                            <select asp-for="NeighborhoodId" id="neighborhoodSelect" class="form-select">
+                                <option value="">Mahalle Seçin</option>
+                            </select>
+                            <span asp-validation-for="NeighborhoodId" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label asp-for="Address" class="form-label">Adres</label>
+                            <textarea asp-for="Address" class="form-control" rows="3"
+                                      placeholder="Detaylı adres bilgisi..."></textarea>
+                            <span asp-validation-for="Address" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Latitude" class="form-label">Enlem (Latitude)</label>
+                            <input asp-for="Latitude" type="number" step="any" class="form-control"
+                                   placeholder="39.9334">
+                            <span asp-validation-for="Latitude" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Longitude" class="form-label">Boylam (Longitude)</label>
+                            <input asp-for="Longitude" type="number" step="any" class="form-control"
+                                   placeholder="32.8597">
+                            <span asp-validation-for="Longitude" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Images -->
+        <div class="col-lg-4">
+            <div class="card admin-card mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-images me-2"></i>İlan Resimleri</h5>
+                </div>
+                <div class="card-body">
+                    <div class="image-upload-container mb-3" onclick="document.getElementById('imageInput').click()">
+                        <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                        <h6>Resimleri Sürükle ve Bırak</h6>
+                        <p class="text-muted mb-0">veya tıklayarak seç</p>
+                        <small class="text-muted">
+                            Maksimum 5MB, JPG, PNG, GIF formatları
+                        </small>
+                    </div>
+
+                    <input type="file" id="imageInput" name="Images" multiple accept="image/*"
+                           class="d-none" asp-for="Images">
+
+                    <div class="uploaded-images"></div>
+
+                    <div class="alert alert-info mt-3">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            <strong>İpucu:</strong> İlk yüklenen resim ana resim olarak kullanılacaktır.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Info -->
+            <div class="card admin-card">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Önemli Notlar</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Tüm zorunlu alanları doldurun
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            En az bir resim ekleyin
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Açıklama detaylı olsun
+                        </li>
+                        <li class="mb-0">
+                            <i class="fas fa-check text-success me-2"></i>
+                            Konum bilgilerini doğru girin
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Submit Buttons -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card admin-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+                            <i class="fas fa-times me-1"></i>İptal
+                        </a>
+                        <div>
+                            <button type="submit" class="btn btn-admin-primary me-2">
+                                <i class="fas fa-save me-1"></i>İlanı Kaydet
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            initializeLocationDropdowns();
+            initializeImageUpload();
+        });
+
+        // Location dropdowns
+        $('#citySelect').on('change', function() {
+            var cityId = $(this).val();
+            loadDistricts(cityId);
+        });
+
+        $('#districtSelect').on('change', function() {
+            var districtId = $(this).val();
+            loadNeighborhoods(districtId);
+        });
+
+        function loadDistricts(cityId) {
+            var districtSelect = $('#districtSelect');
+            var neighborhoodSelect = $('#neighborhoodSelect');
+
+            districtSelect.html('<option value="">Yükleniyor...</option>');
+            neighborhoodSelect.html('<option value="">İlçe seçin</option>');
+
+            if (cityId) {
+                $.get('@Url.Action("GetDistricts", "Property")', { cityId: cityId }, function(data) {
+                    var options = '<option value="">İlçe Seçin</option>';
+                    $.each(data, function(index, district) {
+                        options += '<option value="' + district.id + '">' + district.name + '</option>';
+                    });
+                    districtSelect.html(options);
+                }).fail(function() {
+                    districtSelect.html('<option value="">Hata oluştu</option>');
+                });
+            } else {
+                districtSelect.html('<option value="">İlçe Seçin</option>');
+                neighborhoodSelect.html('<option value="">Mahalle Seçin</option>');
+            }
+        }
+
+        function loadNeighborhoods(districtId) {
+            var neighborhoodSelect = $('#neighborhoodSelect');
+
+            neighborhoodSelect.html('<option value="">Yükleniyor...</option>');
+
+            if (districtId) {
+                $.get('@Url.Action("GetNeighborhoods", "Property")', { districtId: districtId }, function(data) {
+                    var options = '<option value="">Mahalle Seçin</option>';
+                    $.each(data, function(index, neighborhood) {
+                        options += '<option value="' + neighborhood.id + '">' + neighborhood.name + '</option>';
+                    });
+                    neighborhoodSelect.html(options);
+                }).fail(function() {
+                    neighborhoodSelect.html('<option value="">Hata oluştu</option>');
+                });
+            } else {
+                neighborhoodSelect.html('<option value="">Mahalle Seçin</option>');
+            }
+        }
+
+        // Image upload
+        function initializeImageUpload() {
+            var container = $('.image-upload-container');
+            var fileInput = $('#imageInput');
+
+            // Drag and drop events
+            container.on('dragover', function(e) {
+                e.preventDefault();
+                $(this).addClass('dragover');
+            });
+
+            container.on('dragleave', function(e) {
+                e.preventDefault();
+                $(this).removeClass('dragover');
+            });
+
+            container.on('drop', function(e) {
+                e.preventDefault();
+                $(this).removeClass('dragover');
+
+                var files = e.originalEvent.dataTransfer.files;
+                handleFiles(files);
+            });
+
+            // File input change
+            fileInput.on('change', function() {
+                handleFiles(this.files);
+            });
+        }
+
+        function handleFiles(files) {
+            for (var i = 0; i < files.length; i++) {
+                var file = files[i];
+
+                if (!file.type.startsWith('image/')) {
+                    showAlert('Geçersiz dosya formatı: ' + file.name, 'warning');
+                    continue;
+                }
+
+                if (file.size > 5 * 1024 * 1024) { // 5MB
+                    showAlert('Dosya çok büyük: ' + file.name + ' (Max: 5MB)', 'warning');
+                    continue;
+                }
+
+                // Preview
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    addImagePreview(e.target.result, file.name);
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addImagePreview(src, filename) {
+            var previewHtml =
+                '<div class="uploaded-image">' +
+                    '<img src="' + src + '" alt="' + filename + '">' +
+                    '<button type="button" class="remove-image" onclick="removeImagePreview(this)">' +
+                        '<i class="fas fa-times"></i>' +
+                    '</button>' +
+                '</div>';
+            $('.uploaded-images').append(previewHtml);
+        }
+
+        function removeImagePreview(button) {
+            $(button).closest('.uploaded-image').remove();
+        }
+    </script>
+}
