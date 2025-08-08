@@ -173,155 +173,181 @@
 <div class="modal fade" id="addCityModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <!-- Edit City Modal -->
-            <div class="modal fade" id="editCityModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Şehir Düzenle</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="editCityForm">
-                                <input type="hidden" id="edit_city_id">
-                                <div class="mb-3">
-                                    <label class="form-label">Şehir Adı *</label>
-                                    <input type="text" class="form-control" id="edit_city_name" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Plaka Kodu</label>
-                                    <input type="text" class="form-control" id="edit_city_plateCode">
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                            <button type="button" class="btn btn-admin-primary" onclick="updateCity()">
-                                <i class="fas fa-save me-1"></i>Güncelle
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <div class="modal-header">
+                <h5 class="modal-title">Yeni Şehir Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
-            <!-- Add District Modal -->
-            <div class="modal fade" id="addDistrictModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Yeni İlçe Ekle</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="addDistrictForm">
-                                <input type="hidden" id="district_cityId">
-                                <div class="mb-3">
-                                    <label class="form-label">Şehir</label>
-                                    <input type="text" class="form-control" id="district_cityName" readonly>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">İlçe Adı *</label>
-                                    <input type="text" class="form-control" id="district_name" required>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                            <button type="button" class="btn btn-admin-primary" onclick="createDistrict()">
-                                <i class="fas fa-save me-1"></i>İlçe Ekle
-                            </button>
-                        </div>
+            <div class="modal-body">
+                <form id="addCityForm">
+                    <div class="mb-3">
+                        <label class="form-label">Şehir Adı *</label>
+                        <input type="text" class="form-control" id="city_name" required>
                     </div>
-                </div>
-            </div>
-
-            <!-- Edit District Modal -->
-            <div class="modal fade" id="editDistrictModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">İlçe Düzenle</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="editDistrictForm">
-                                <input type="hidden" id="edit_district_id">
-                                <div class="mb-3">
-                                    <label class="form-label">İlçe Adı *</label>
-                                    <input type="text" class="form-control" id="edit_district_name" required>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                            <button type="button" class="btn btn-admin-primary" onclick="updateDistrict()">
-                                <i class="fas fa-save me-1"></i>Güncelle
-                            </button>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Plaka Kodu</label>
+                        <input type="text" class="form-control" id="city_plateCode" placeholder="06">
                     </div>
-                </div>
+                </form>
             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-admin-primary" onclick="createCity()">
+                    <i class="fas fa-save me-1"></i>Şehir Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            <!-- Add Neighborhood Modal -->
-            <div class="modal fade" id="addNeighborhoodModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Yeni Mahalle Ekle</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="addNeighborhoodForm">
-                                <input type="hidden" id="neighborhood_districtId">
-                                <div class="mb-3">
-                                    <label class="form-label">İlçe</label>
-                                    <input type="text" class="form-control" id="neighborhood_districtName" readonly>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Mahalle Adı *</label>
-                                    <input type="text" class="form-control" id="neighborhood_name" required>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                            <button type="button" class="btn btn-admin-primary" onclick="createNeighborhood()">
-                                <i class="fas fa-save me-1"></i>Mahalle Ekle
-                            </button>
-                        </div>
+<!-- Edit City Modal -->
+<div class="modal fade" id="editCityModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Şehir Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editCityForm">
+                    <input type="hidden" id="edit_city_id">
+                    <div class="mb-3">
+                        <label class="form-label">Şehir Adı *</label>
+                        <input type="text" class="form-control" id="edit_city_name" required>
                     </div>
-                </div>
-            </div>
-
-            <!-- Edit Neighborhood Modal -->
-            <div class="modal fade" id="editNeighborhoodModal" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Mahalle Düzenle</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <form id="editNeighborhoodForm">
-                                <input type="hidden" id="edit_neighborhood_id">
-                                <div class="mb-3">
-                                    <label class="form-label">Mahalle Adı *</label>
-                                    <input type="text" class="form-control" id="edit_neighborhood_name" required>
-                                </div>
-                            </form>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-                            <button type="button" class="btn btn-admin-primary" onclick="updateNeighborhood()">
-                                <i class="fas fa-save me-1"></i>Güncelle
-                            </button>
-                        </div>
+                    <div class="mb-3">
+                        <label class="form-label">Plaka Kodu</label>
+                        <input type="text" class="form-control" id="edit_city_plateCode">
                     </div>
-                </div>
+                </form>
             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-admin-primary" onclick="updateCity()">
+                    <i class="fas fa-save me-1"></i>Güncelle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            @section Scripts {
-                <script>
+<!-- Add District Modal -->
+<div class="modal fade" id="addDistrictModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Yeni İlçe Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDistrictForm">
+                    <input type="hidden" id="district_cityId">
+                    <div class="mb-3">
+                        <label class="form-label">Şehir</label>
+                        <input type="text" class="form-control" id="district_cityName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">İlçe Adı *</label>
+                        <input type="text" class="form-control" id="district_name" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-admin-primary" onclick="createDistrict()">
+                    <i class="fas fa-save me-1"></i>İlçe Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit District Modal -->
+<div class="modal fade" id="editDistrictModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">İlçe Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editDistrictForm">
+                    <input type="hidden" id="edit_district_id">
+                    <div class="mb-3">
+                        <label class="form-label">İlçe Adı *</label>
+                        <input type="text" class="form-control" id="edit_district_name" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-admin-primary" onclick="updateDistrict()">
+                    <i class="fas fa-save me-1"></i>Güncelle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Neighborhood Modal -->
+<div class="modal fade" id="addNeighborhoodModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Yeni Mahalle Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addNeighborhoodForm">
+                    <input type="hidden" id="neighborhood_districtId">
+                    <div class="mb-3">
+                        <label class="form-label">İlçe</label>
+                        <input type="text" class="form-control" id="neighborhood_districtName" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Mahalle Adı *</label>
+                        <input type="text" class="form-control" id="neighborhood_name" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-admin-primary" onclick="createNeighborhood()">
+                    <i class="fas fa-save me-1"></i>Mahalle Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Neighborhood Modal -->
+<div class="modal fade" id="editNeighborhoodModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Mahalle Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editNeighborhoodForm">
+                    <input type="hidden" id="edit_neighborhood_id">
+                    <div class="mb-3">
+                        <label class="form-label">Mahalle Adı *</label>
+                        <input type="text" class="form-control" id="edit_neighborhood_name" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-admin-primary" onclick="updateNeighborhood()">
+                    <i class="fas fa-save me-1"></i>Güncelle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
         // City Functions
         function createCity() {
             var name = $('#city_name').val();
@@ -550,35 +576,30 @@
                 });
             }
         }
-                </script>
-            }
-            <h5 class="modal-title">Yeni Şehir Ekle</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-            <form id="addCityForm">
-                <div class="mb-3">
-                    <label class="form-label">Şehir Adı *</label>
-                    <input type="text" class="form-control" id="city_name" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Plaka Kodu</label>
-                    <input type="text" class="form-control" id="city_plateCode" placeholder="06">
-                </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
-            <button type="button" class="btn btn-admin-primary" onclick="createCity()">
-                <i class="fas fa-save me-1"></i>Şehir Ekle
-            </button>
-        </div>
-    </div>
-</div>
-</div>
 
-<!-- Edit City Modal -->
-<div class="modal fade" id="editCityModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
+        // Alert function
+        function showAlert(message, type) {
+            var alertClass = 'alert-' + type;
+            var iconClass = type === 'success' ? 'check-circle' :
+                           type === 'danger' ? 'exclamation-circle' :
+                           type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+
+            var alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show position-fixed"
+                     style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+                    <i class="fas fa-${iconClass} me-2"></i>${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            $('body').append(alertHtml);
+
+            // Auto remove after 5 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut(function() {
+                    $(this).remove();
+                });
+            }, 5000);
+        }
+    </script>
+}

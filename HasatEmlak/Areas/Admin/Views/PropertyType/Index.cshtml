@@ -1,0 +1,413 @@
+﻿@model IEnumerable<HasatEmlak.Models.Entities.PropertyType>
+
+@{
+    ViewData["Title"] = "Emlak Türleri Yönetimi";
+}
+
+@section PageActions {
+    <button type="button" class="btn btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addPropertyTypeModal">
+        <i class="fas fa-plus me-1"></i>Yeni Emlak Türü Ekle
+    </button>
+}
+
+<!-- PropertyTypes List -->
+<div class="card admin-table">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-building me-2"></i>Emlak Türleri (@Model.Count())</h5>
+    </div>
+    <div class="card-body p-0">
+        @if (Model != null && Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="propertyTypesTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="60">Sıra</th>
+                            <th width="80">İkon</th>
+                            <th>Emlak Türü</th>
+                            <th>Açıklama</th>
+                            <th width="100">İlan Sayısı</th>
+                            <th width="100">Durum</th>
+                            <th width="150">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sortable">
+                        @foreach (var propertyType in Model)
+                        {
+                            <tr data-id="@propertyType.Id">
+                                <td>
+                                    <span class="badge bg-secondary">#@propertyType.DisplayOrder</span>
+                                    <i class="fas fa-grip-vertical text-muted ms-2" style="cursor: move;" title="Sırala"></i>
+                                </td>
+                                <td>
+                                    <i class="@propertyType.IconClass fa-2x text-primary"></i>
+                                </td>
+                                <td>
+                                    <strong>@propertyType.Name</strong>
+                                </td>
+                                <td>
+                                    <small class="text-muted">@propertyType.Description</small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info" id="propertyCount_@propertyType.Id">-</span>
+                                </td>
+                                <td>
+                                    <span class="badge @(propertyType.IsActive ? "bg-success" : "bg-danger")">
+                                        @(propertyType.IsActive ? "Aktif" : "Pasif")
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary"
+                                                onclick="editPropertyType(@propertyType.Id, '@propertyType.Name', '@propertyType.Description', '@propertyType.IconClass', @propertyType.DisplayOrder)"
+                                                title="Düzenle">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-@(propertyType.IsActive ? "warning" : "success")"
+                                                onclick="toggleStatus(@propertyType.Id)"
+                                                title="Durum Değiştir">
+                                            <i class="fas fa-@(propertyType.IsActive ? "eye-slash" : "eye")"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-outline-danger"
+                                                onclick="deletePropertyType(@propertyType.Id)"
+                                                title="Sil">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div class="mb-4">
+                    <i class="fas fa-building fa-4x text-muted"></i>
+                </div>
+                <h4>Henüz emlak türü eklenmemiş</h4>
+                <p class="text-muted mb-4">Emlak ilanlarınızı kategorize etmek için emlak türleri ekleyin.</p>
+                <button type="button" class="btn btn-admin-primary" data-bs-toggle="modal" data-bs-target="#addPropertyTypeModal">
+                    <i class="fas fa-plus me-1"></i>İlk Emlak Türünü Ekle
+                </button>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Add PropertyType Modal -->
+<div class="modal fade" id="addPropertyTypeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Yeni Emlak Türü Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addPropertyTypeForm">
+                    <div class="mb-3">
+                        <label class="form-label">Emlak Türü Adı *</label>
+                        <input type="text" class="form-control" id="add_name" required placeholder="Örn: Daire, Villa, Ofis">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="add_description" rows="3" placeholder="Emlak türü hakkında kısa açıklama"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">İkon Sınıfı (Font Awesome)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i id="add_iconPreview" class="fas fa-building"></i>
+                            </span>
+                            <input type="text" class="form-control" id="add_iconClass"
+                                   value="fas fa-building" placeholder="fas fa-building">
+                        </div>
+                        <small class="text-muted">Örnek: fas fa-building, fas fa-house-user, fas fa-store</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Görüntülenme Sırası</label>
+                        <input type="number" class="form-control" id="add_displayOrder" min="1" value="1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-admin-primary" onclick="addPropertyType()">
+                    <i class="fas fa-save me-1"></i>Emlak Türü Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit PropertyType Modal -->
+<div class="modal fade" id="editPropertyTypeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Emlak Türü Düzenle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editPropertyTypeForm">
+                    <input type="hidden" id="edit_id">
+                    <div class="mb-3">
+                        <label class="form-label">Emlak Türü Adı *</label>
+                        <input type="text" class="form-control" id="edit_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Açıklama</label>
+                        <textarea class="form-control" id="edit_description" rows="3"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">İkon Sınıfı (Font Awesome)</label>
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i id="edit_iconPreview" class="fas fa-building"></i>
+                            </span>
+                            <input type="text" class="form-control" id="edit_iconClass"
+                                   placeholder="fas fa-building">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Görüntülenme Sırası</label>
+                        <input type="number" class="form-control" id="edit_displayOrder" min="1">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-admin-primary" onclick="updatePropertyType()">
+                    <i class="fas fa-save me-1"></i>Güncelle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            loadPropertyCounts();
+            initializeSortable();
+
+            // Icon preview
+            $('#add_iconClass').on('input', function() {
+                var iconClass = $(this).val() || 'fas fa-building';
+                $('#add_iconPreview').attr('class', iconClass);
+            });
+
+            $('#edit_iconClass').on('input', function() {
+                var iconClass = $(this).val() || 'fas fa-building';
+                $('#edit_iconPreview').attr('class', iconClass);
+            });
+        });
+
+        function initializeSortable() {
+            var el = document.getElementById('sortable');
+            if (el) {
+                Sortable.create(el, {
+                    handle: '.fa-grip-vertical',
+                    animation: 150,
+                    onEnd: function (evt) {
+                        var ids = [];
+                        $('#sortable tr').each(function() {
+                            ids.push($(this).data('id'));
+                        });
+                        updateOrder(ids);
+                    }
+                });
+            }
+        }
+
+        function updateOrder(ids) {
+            $.ajax({
+                url: '@Url.Action("UpdateOrder")',
+                type: 'POST',
+                data: { ids: ids },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Sıralama güncellenirken hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function addPropertyType() {
+            var name = $('#add_name').val();
+            var description = $('#add_description').val();
+            var iconClass = $('#add_iconClass').val();
+            var displayOrder = $('#add_displayOrder').val();
+
+            if (!name.trim()) {
+                showAlert('Emlak türü adı gereklidir!', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("Create")',
+                type: 'POST',
+                data: {
+                    name: name,
+                    description: description,
+                    iconClass: iconClass,
+                    displayOrder: displayOrder
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#addPropertyTypeModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Emlak türü eklenirken hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function editPropertyType(id, name, description, iconClass, displayOrder) {
+            $('#edit_id').val(id);
+            $('#edit_name').val(name);
+            $('#edit_description').val(description);
+            $('#edit_iconClass').val(iconClass);
+            $('#edit_displayOrder').val(displayOrder);
+            $('#edit_iconPreview').attr('class', iconClass || 'fas fa-building');
+            $('#editPropertyTypeModal').modal('show');
+        }
+
+        function updatePropertyType() {
+            var id = $('#edit_id').val();
+            var name = $('#edit_name').val();
+            var description = $('#edit_description').val();
+            var iconClass = $('#edit_iconClass').val();
+            var displayOrder = $('#edit_displayOrder').val();
+
+            if (!name.trim()) {
+                showAlert('Emlak türü adı gereklidir!', 'warning');
+                return;
+            }
+
+            $.ajax({
+                url: '@Url.Action("Edit")',
+                type: 'POST',
+                data: {
+                    id: id,
+                    name: name,
+                    description: description,
+                    iconClass: iconClass,
+                    displayOrder: displayOrder
+                },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        $('#editPropertyTypeModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Emlak türü güncellenirken hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function toggleStatus(id) {
+            $.ajax({
+                url: '@Url.Action("ToggleStatus")',
+                type: 'POST',
+                data: { id: id },
+                success: function(response) {
+                    if (response.success) {
+                        showAlert(response.message, 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showAlert(response.message, 'danger');
+                    }
+                },
+                error: function() {
+                    showAlert('Durum değiştirilirken hata oluştu!', 'danger');
+                }
+            });
+        }
+
+        function deletePropertyType(id) {
+            if (confirm('Bu emlak türünü silmek istediğinizden emin misiniz?\n\nBu işlem geri alınamaz!')) {
+                $.ajax({
+                    url: '@Url.Action("Delete")',
+                    type: 'POST',
+                    data: { id: id },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function() {
+                        showAlert('Emlak türü silinirken hata oluştu!', 'danger');
+                    }
+                });
+            }
+        }
+
+        function loadPropertyCounts() {
+            @foreach (var propertyType in Model)
+            {
+                <text>
+                    $.get('/Admin/Property/GetCountByPropertyType', { propertyTypeId: @propertyType.Id }, function(count) {
+                        $('#propertyCount_@propertyType.Id').text(count || 0);
+                    }).fail(function() {
+                        $('#propertyCount_@propertyType.Id').text('0');
+                    });
+                </text>
+            }
+        }
+
+        // Alert function
+        function showAlert(message, type) {
+            var alertClass = 'alert-' + type;
+            var iconClass = type === 'success' ? 'check-circle' :
+                           type === 'danger' ? 'exclamation-circle' :
+                           type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+
+            var alertHtml = `
+                <div class="alert ${alertClass} alert-dismissible fade show position-fixed"
+                     style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+                    <i class="fas fa-${iconClass} me-2"></i>${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            $('body').append(alertHtml);
+
+            // Auto remove after 5 seconds
+            setTimeout(function() {
+                $('.alert').fadeOut(function() {
+                    $(this).remove();
+                });
+            }, 5000);
+        }
+    </script>
+}
