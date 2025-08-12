@@ -1,0 +1,277 @@
+﻿@{
+    ViewData["Title"] = "İletişim";
+}
+
+<!-- Page Header -->
+<div class="bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <nav aria-label="breadcrumb" class="mb-3">
+                    <ol class="breadcrumb mb-0 bg-transparent">
+                        <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")" class="text-white">Ana Sayfa</a></li>
+                        <li class="breadcrumb-item active text-white-50">İletişim</li>
+                    </ol>
+                </nav>
+                <h1 class="display-4 fw-bold mb-3">İletişim</h1>
+                <p class="lead mb-0">Bizimle iletişime geçin, size yardımcı olmaktan mutluluk duyarız</p>
+            </div>
+            <div class="col-md-4 text-end d-none d-md-block">
+                <i class="fas fa-phone fa-5x text-white-50"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row">
+        <!-- İletişim Bilgileri -->
+        <div class="col-lg-6 mb-5">
+            <div class="row">
+                <!-- Adres -->
+                <div class="col-12 mb-4">
+                    <div class="card h-100 shadow-sm border-0" data-aos="fade-up">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0"
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-map-marker-alt fa-lg"></i>
+                                </div>
+                                <div>
+                                    <h5 class="card-title mb-2">Adresimiz</h5>
+                                    <p class="card-text text-muted mb-2">
+                                        Adres: Cengizhan, Ozan Rehberi Cd. <br />
+                                        No:14 D:B, 06480 Mamak/Ankara
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Telefon -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm border-0" data-aos="fade-up" data-aos-delay="100">
+                        <div class="card-body p-4 text-center">
+                            <div class="mb-3">
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-phone fa-lg"></i>
+                                </div>
+                            </div>
+                            <h5 class="card-title">Telefon</h5>
+                            <div class="mb-2">
+                                <a href="tel:+905550907090" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-phone me-1"></i>
+                                    0555 090 70 90
+                                </a>
+                            </div>
+                            <div>
+                                <a href="tel:+905550907090" class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-mobile-alt me-1"></i>
+                                    0555 090 70 90
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- E-posta -->
+                <div class="col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm border-0" data-aos="fade-up" data-aos-delay="200">
+                        <div class="card-body p-4 text-center">
+                            <div class="mb-3">
+                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-envelope fa-lg"></i>
+                                </div>
+                            </div>
+                            <h5 class="card-title">E-posta</h5>
+                            <div class="mb-2">
+                                <a href="mailto:info@hasatemlak.com" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    info@hasatemlak.com
+                                </a>
+                            </div>
+                            <div>
+                                <a href="mailto:destek@hasatemlak.com" class="btn btn-outline-info btn-sm">
+                                    <i class="fas fa-headset me-1"></i>
+                                    destek@hasatemlak.com
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Çalışma Saatleri -->
+                <div class="col-12 mb-4">
+                    <div class="card shadow-sm border-0" data-aos="fade-up" data-aos-delay="300">
+                        <div class="card-body p-4">
+                            <div class="d-flex align-items-start">
+                                <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0"
+                                     style="width: 60px; height: 60px;">
+                                    <i class="fas fa-clock fa-lg"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="card-title mb-3">Çalışma Saatleri</h5>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-medium">Pazartesi - Cuma:</span>
+                                                <span class="text-success">09:00 - 19:30</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between mb-2">
+                                                <span class="fw-medium">Cumartesi:</span>
+                                                <span class="text-warning">09:00 - 19:30</span>
+                                            </div>
+                                            <div class="d-flex justify-content-between">
+                                                <span class="fw-medium">Pazar:</span>
+                                                <span class="text-danger">Kapalı</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sosyal Medya -->
+            </div>
+        </div>
+
+        <!-- Harita -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100" data-aos="fade-left">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-map-marker-alt me-2"></i>
+                        Ofisimizi Ziyaret Edin
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3060.5711369695014!2d32.9196569!3d39.9062332!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x14d35112fcd1a59b%3A0x54126575f215303a!2sHASAT%20EMLAK!5e0!3m2!1str!2str!4v1754995062521!5m2!1str!2str"
+                            width="100%"
+                            height="500"
+                            style="border:0;"
+                            allowfullscreen=""
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade">
+                    </iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            initializeMap();
+        });
+
+        function initializeMap() {
+            // Ankara Çankaya koordinatları (HasatEmlak ofisi)
+            var officeLocation = { lat: 39.9334, lng: 32.8597 };
+
+            // Eğer Google Maps API yoksa basit bir placeholder göster
+            if (typeof google === 'undefined') {
+                $('#map').html(`
+                            <div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                                <div class="text-center p-4">
+                                    <i class="fas fa-map-marker-alt fa-4x text-primary mb-3"></i>
+                                    <h5 class="text-primary">HasatEmlak Ofisi</h5>
+                                    <p class="text-muted mb-1">Çankaya Mahallesi, Atatürk Bulvarı No: 123</p>
+                                    <p class="text-muted mb-3">06420 Çankaya/Ankara</p>
+                                    <div class="d-flex gap-2 justify-content-center">
+                                        <a href="https://maps.google.com/?q=39.9334,32.8597" target="_blank" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-external-link-alt me-1"></i>Google Maps'te Aç
+                                        </a>
+                                        <a href="tel:+903121234567" class="btn btn-success btn-sm">
+                                            <i class="fas fa-phone me-1"></i>Ara
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        `);
+                return;
+            }
+
+            // Google Maps oluştur
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 16,
+                center: officeLocation,
+                mapTypeId: google.maps.MapTypeId.ROADMAP,
+                styles: [
+                    {
+                        featureType: 'poi',
+                        elementType: 'labels',
+                        stylers: [{ visibility: 'off' }]
+                    }
+                ]
+            });
+
+            // Marker ekle
+            var marker = new google.maps.Marker({
+                position: officeLocation,
+                map: map,
+                title: 'HasatEmlak Ofisi',
+                animation: google.maps.Animation.DROP,
+                icon: {
+                    url: 'data:image/svg+xml;base64,' + btoa(`
+                                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="#dc3545">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                            `),
+                    scaledSize: new google.maps.Size(40, 40)
+                }
+            });
+
+            // Info window
+            var infoWindow = new google.maps.InfoWindow({
+                content: `
+                            <div class="p-3" style="min-width: 250px;">
+                                <div class="text-center mb-3">
+                                    <i class="fas fa-home fa-2x text-primary"></i>
+                                    <h6 class="mt-2 mb-0"><strong>HasatEmlak Ofisi</strong></h6>
+                                </div>
+                                <div class="mb-3">
+                                    <p class="mb-1"><i class="fas fa-map-marker-alt text-danger me-2"></i>Çankaya Mahallesi</p>
+                                    <p class="mb-1 ms-4">Atatürk Bulvarı No: 123</p>
+                                    <p class="mb-3 ms-4">06420 Çankaya/Ankara</p>
+                                </div>
+                                <div class="mb-3">
+                                    <p class="mb-1"><i class="fas fa-phone text-success me-2"></i>+90 312 123 45 67</p>
+                                    <p class="mb-1"><i class="fas fa-envelope text-info me-2"></i>info@hasatemlak.com</p>
+                                    <p class="mb-0"><i class="fas fa-clock text-warning me-2"></i>Pazartesi-Cuma: 09:00-18:00</p>
+                                </div>
+                                <div class="text-center">
+                                    <a href="https://maps.google.com/?q=39.9334,32.8597" target="_blank" class="btn btn-primary btn-sm me-1">
+                                        <i class="fas fa-route me-1"></i>Yol Tarifi
+                                    </a>
+                                    <a href="tel:+903121234567" class="btn btn-success btn-sm">
+                                        <i class="fas fa-phone me-1"></i>Ara
+                                    </a>
+                                </div>
+                            </div>
+                        `
+            });
+
+            // Marker'a tıklandığında info window'u aç
+            marker.addListener('click', function () {
+                infoWindow.open(map, marker);
+            });
+
+            // Sayfa yüklendiğinde info window'u otomatik aç
+            setTimeout(function () {
+                infoWindow.open(map, marker);
+            }, 1000);
+
+            // Harita tıklanabilir alanları
+            map.addListener('click', function () {
+                infoWindow.close();
+            });
+        }
+    </script>
+}

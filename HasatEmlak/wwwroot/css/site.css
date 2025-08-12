@@ -140,7 +140,7 @@ body {
 
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.9), rgba(41, 128, 185, 0.9)), url('/images/hero-bg.jpg');
+    background: url('/images/hero-bg.jpg');
     background-size: cover;
     background-position: center;
     min-height: 70vh;

@@ -107,7 +107,7 @@ namespace HasatEmlak.Services
         
         <div class='footer'>
             <p>&copy; 2024 HasatEmlak. Tüm hakları saklıdır.</p>
-            <p>📧 info@hasatemlak.com | 📞 +90 312 123 45 67</p>
+            <p>📧 info@hasatemlak.com | 📞 +90 555 090 70 90</p>
         </div>
     </div>
 </body>

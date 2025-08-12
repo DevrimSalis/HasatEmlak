@@ -55,11 +55,11 @@
                             </li>
                         </ul>
                     </li>
-                    <li class="nav-item">
+                    @*<li class="nav-item">
                         <a class="nav-link" href="@Url.Action("Index", "Contact", new { area = "Admin" })">
                             <i class="fas fa-envelope me-1"></i>Mesajlar
                         </a>
-                    </li>
+                    </li>*@
                 </ul>
 
                 <ul class="navbar-nav">
@@ -130,21 +130,21 @@
                         </a>
                     </li>
 
-                    <li class="nav-item">
+                    @*<li class="nav-item">
                         <hr class="my-2">
                         <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
                             <span>İLETİŞİM</span>
                         </h6>
-                    </li>
+                    </li>*@
 
-                    <li class="nav-item">
+                    @*<li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Contact" ? "active" : "")"
                            href="@Url.Action("Index", "Contact", new { area = "Admin" })">
                             <i class="fas fa-envelope me-2"></i>
                             Mesajlar
                             <span class="badge bg-danger ms-auto" id="unreadCount">0</span>
                         </a>
-                    </li>
+                    </li>*@
                 </ul>
             </div>
         </div>
