@@ -62,7 +62,7 @@ namespace HasatEmlak.Areas.Admin.Controllers
                 .ToListAsync();
 
             // ViewBag data for filters
-            await PrepareViewBagData();
+            await PrepareViewBagDataSafe();
 
             var viewModel = new PropertyListViewModel
             {
@@ -85,7 +85,7 @@ namespace HasatEmlak.Areas.Admin.Controllers
         // GET: Admin/Property/Create
         public async Task<IActionResult> Create()
         {
-            await PrepareViewBagData();
+            await PrepareViewBagDataSafe();
             return View(new PropertyCreateViewModel());
         }
 
@@ -96,10 +96,38 @@ namespace HasatEmlak.Areas.Admin.Controllers
         {
             try
             {
-                // ModelState'i kontrol et
+                // Debug log
+                Console.WriteLine($"=== CREATE DEBUG ===");
+                Console.WriteLine($"Received {model.Images?.Count ?? 0} images");
+
+                // Duplicate image kontrolü
+                if (model.Images != null && model.Images.Any())
+                {
+                    var uniqueImages = model.Images
+                        .Where(img => img != null && img.Length > 0)
+                        .GroupBy(img => new {
+                            Name = img.FileName?.ToLower(),
+                            Size = img.Length,
+                            Type = img.ContentType
+                        })
+                        .Select(g => g.First())
+                        .ToList();
+
+                    if (uniqueImages.Count != model.Images.Count)
+                    {
+                        Console.WriteLine($"Removed {model.Images.Count - uniqueImages.Count} duplicate images");
+                        model.Images = uniqueImages;
+                    }
+
+                    foreach (var img in model.Images)
+                    {
+                        Console.WriteLine($"Image: {img.FileName} - {img.Length} bytes - {img.ContentType}");
+                    }
+                }
+
                 if (!ModelState.IsValid)
                 {
-                    await PrepareViewBagData();
+                    await PrepareViewBagDataSafe();
                     TempData["Error"] = "Lütfen tüm zorunlu alanları doldurun!";
                     return View(model);
                 }
@@ -131,10 +159,13 @@ namespace HasatEmlak.Areas.Admin.Controllers
                 _context.Properties.Add(property);
                 await _context.SaveChangesAsync();
 
+                Console.WriteLine($"Property saved with ID: {property.Id}");
+
                 // Handle image uploads
                 if (model.Images != null && model.Images.Any())
                 {
-                    await HandleImageUploads(property.Id, model.Images);
+                    Console.WriteLine($"Processing {model.Images.Count} images for property {property.Id}");
+                    await HandleImageUploadsSafe(property.Id, model.Images);
                 }
 
                 TempData["Success"] = "İlan başarıyla oluşturuldu!";
@@ -142,8 +173,9 @@ namespace HasatEmlak.Areas.Admin.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error in Create: {ex}");
                 TempData["Error"] = $"İlan kaydedilirken hata oluştu: {ex.Message}";
-                await PrepareViewBagData();
+                await PrepareViewBagDataSafe();
                 return View(model);
             }
         }
@@ -183,7 +215,7 @@ namespace HasatEmlak.Areas.Admin.Controllers
                 NeighborhoodId = property.NeighborhoodId
             };
 
-            await PrepareViewBagData();
+            await PrepareViewBagDataSafe();
             ViewBag.PropertyId = property.Id;
             ViewBag.ExistingImages = property.PropertyImages;
             return View(model);
@@ -230,14 +262,14 @@ namespace HasatEmlak.Areas.Admin.Controllers
                 // Handle new image uploads
                 if (model.Images != null && model.Images.Any())
                 {
-                    await HandleImageUploads(property.Id, model.Images);
+                    await HandleImageUploadsSafe(property.Id, model.Images);
                 }
 
                 TempData["Success"] = "İlan başarıyla güncellendi!";
                 return RedirectToAction(nameof(Index));
             }
 
-            await PrepareViewBagData();
+            await PrepareViewBagDataSafe();
             ViewBag.PropertyId = id;
             var existingImages = await _context.PropertyImages.Where(pi => pi.PropertyId == id).ToListAsync();
             ViewBag.ExistingImages = existingImages;
@@ -441,65 +473,7 @@ namespace HasatEmlak.Areas.Admin.Controllers
             return Json(properties);
         }
 
-        #region Private Methods
-
-        private async Task PrepareViewBagData()
-        {
-            ViewBag.Categories = await _context.Categories
-                .Where(c => c.IsActive)
-                .OrderBy(c => c.DisplayOrder)
-                .ToListAsync();
-
-            ViewBag.PropertyTypes = await _context.PropertyTypes
-                .Where(pt => pt.IsActive)
-                .OrderBy(pt => pt.DisplayOrder)
-                .ToListAsync();
-
-            ViewBag.Cities = await _context.Cities
-                .Where(c => c.IsActive)
-                .OrderBy(c => c.Name)
-                .ToListAsync();
-        }
-
-        private async Task HandleImageUploads(int propertyId, List<IFormFile> images)
-        {
-            var uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "properties");
-
-            if (!Directory.Exists(uploadPath))
-            {
-                Directory.CreateDirectory(uploadPath);
-            }
-
-            foreach (var image in images)
-            {
-                if (image.Length > 0)
-                {
-                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
-                    var filePath = Path.Combine(uploadPath, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await image.CopyToAsync(stream);
-                    }
-
-                    var propertyImage = new PropertyImage
-                    {
-                        PropertyId = propertyId,
-                        ImagePath = $"images/properties/{fileName}",
-                        AltText = $"Property {propertyId} Image",
-                        IsMainImage = false,
-                        DisplayOrder = 0,
-                        CreatedDate = DateTime.Now
-                    };
-
-                    _context.PropertyImages.Add(propertyImage);
-                }
-            }
-
-            await _context.SaveChangesAsync();
-        }
-
-
+        // GET: Admin/Property/GetDistricts
         [HttpGet]
         public async Task<IActionResult> GetDistricts(int cityId)
         {
@@ -519,6 +493,7 @@ namespace HasatEmlak.Areas.Admin.Controllers
             }
         }
 
+        // GET: Admin/Property/GetNeighborhoods
         [HttpGet]
         public async Task<IActionResult> GetNeighborhoods(int districtId)
         {
@@ -537,6 +512,141 @@ namespace HasatEmlak.Areas.Admin.Controllers
                 return Json(new { error = "Mahalleler getirilemedi", message = ex.Message });
             }
         }
+
+        #region Private Methods
+
+        // Güvenli ViewBag preparation
+        private async Task PrepareViewBagDataSafe()
+        {
+            try
+            {
+                var categories = await _context.Categories
+                    .Where(c => c.IsActive)
+                    .OrderBy(c => c.DisplayOrder)
+                    .ToListAsync();
+
+                var propertyTypes = await _context.PropertyTypes
+                    .Where(pt => pt.IsActive)
+                    .OrderBy(pt => pt.DisplayOrder)
+                    .ToListAsync();
+
+                var cities = await _context.Cities
+                    .Where(c => c.IsActive)
+                    .OrderBy(c => c.Name)
+                    .ToListAsync();
+
+                // Güvenli ViewBag assignment
+                ViewBag.Categories = categories ?? new List<Category>();
+                ViewBag.PropertyTypes = propertyTypes ?? new List<PropertyType>();
+                ViewBag.Cities = cities ?? new List<City>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in PrepareViewBagDataSafe: {ex}");
+
+                // Hata durumunda boş listeler
+                ViewBag.Categories = new List<Category>();
+                ViewBag.PropertyTypes = new List<PropertyType>();
+                ViewBag.Cities = new List<City>();
+            }
+        }
+
+        // Güvenli image upload
+        private async Task HandleImageUploadsSafe(int propertyId, List<IFormFile> images)
+        {
+            if (images == null || !images.Any())
+                return;
+
+            var uploadPath = Path.Combine(_webHostEnvironment.WebRootPath, "images", "properties");
+
+            if (!Directory.Exists(uploadPath))
+            {
+                Directory.CreateDirectory(uploadPath);
+            }
+
+            // Duplicate dosyaları engelle - multiple criteria
+            var processedFiles = new HashSet<string>();
+            var displayOrder = await _context.PropertyImages
+                .Where(pi => pi.PropertyId == propertyId)
+                .CountAsync();
+
+            // Unique images sadece
+            var uniqueImages = images
+                .Where(img => img != null && img.Length > 0)
+                .GroupBy(img => new {
+                    Name = img.FileName?.ToLower(),
+                    Size = img.Length,
+                    Type = img.ContentType
+                })
+                .Select(g => g.First())
+                .ToList();
+
+            Console.WriteLine($"Original images: {images.Count}, Unique images: {uniqueImages.Count}");
+
+            foreach (var image in uniqueImages)
+            {
+                try
+                {
+                    // Double check for duplicates
+                    var fileHash = $"{image.FileName?.ToLower()}_{image.Length}_{image.ContentType}";
+                    if (processedFiles.Contains(fileHash))
+                    {
+                        Console.WriteLine($"Skipping duplicate: {image.FileName}");
+                        continue;
+                    }
+                    processedFiles.Add(fileHash);
+
+                    // Unique filename
+                    var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+                    var filePath = Path.Combine(uploadPath, fileName);
+
+                    // Ensure unique file path
+                    while (System.IO.File.Exists(filePath))
+                    {
+                        fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+                        filePath = Path.Combine(uploadPath, fileName);
+                    }
+
+                    // Save file
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await image.CopyToAsync(stream);
+                    }
+
+                    Console.WriteLine($"Saved file: {fileName}");
+
+                    // Save to database
+                    var propertyImage = new PropertyImage
+                    {
+                        PropertyId = propertyId,
+                        ImagePath = $"images/properties/{fileName}",
+                        AltText = $"Property {propertyId} Image",
+                        IsMainImage = displayOrder == 0,
+                        DisplayOrder = displayOrder,
+                        CreatedDate = DateTime.Now
+                    };
+
+                    _context.PropertyImages.Add(propertyImage);
+                    displayOrder++;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error processing image {image.FileName}: {ex.Message}");
+                }
+            }
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"Saved {uniqueImages.Count} images to database");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error saving images to database: {ex}");
+                throw;
+            }
+        }
+
         #endregion
     }
 }

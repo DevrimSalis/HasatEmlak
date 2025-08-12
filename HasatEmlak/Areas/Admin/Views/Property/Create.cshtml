@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Yeni İlan Ekle";
+    var categories = ViewBag.Categories as IEnumerable<HasatEmlak.Models.Entities.Category> ?? new List<HasatEmlak.Models.Entities.Category>();
+    var propertyTypes = ViewBag.PropertyTypes as IEnumerable<HasatEmlak.Models.Entities.PropertyType> ?? new List<HasatEmlak.Models.Entities.PropertyType>();
+    var cities = ViewBag.Cities as IEnumerable<HasatEmlak.Models.Entities.City> ?? new List<HasatEmlak.Models.Entities.City>();
 }
 
 @section PageActions {
@@ -12,7 +15,7 @@
     </div>
 }
 
-<form asp-action="Create" method="post" enctype="multipart/form-data" class="admin-form">
+<form asp-action="Create" method="post" enctype="multipart/form-data" class="admin-form" id="propertyCreateForm">
     <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
     <div class="row">
@@ -34,7 +37,7 @@
                             <label asp-for="CategoryId" class="form-label">Kategori *</label>
                             <select asp-for="CategoryId" class="form-select">
                                 <option value="">Kategori Seçin</option>
-                                @foreach (var category in ViewBag.Categories as IEnumerable<HasatEmlak.Models.Entities.Category>)
+                                @foreach (var category in categories)
                                 {
                                     <option value="@category.Id">@category.Name</option>
                                 }
@@ -46,7 +49,7 @@
                             <label asp-for="PropertyTypeId" class="form-label">Emlak Türü *</label>
                             <select asp-for="PropertyTypeId" class="form-select">
                                 <option value="">Emlak Türü Seçin</option>
-                                @foreach (var type in ViewBag.PropertyTypes as IEnumerable<HasatEmlak.Models.Entities.PropertyType>)
+                                @foreach (var type in propertyTypes)
                                 {
                                     <option value="@type.Id">@type.Name</option>
                                 }
@@ -151,7 +154,7 @@
                             <label asp-for="CityId" class="form-label">Şehir *</label>
                             <select asp-for="CityId" id="citySelect" class="form-select">
                                 <option value="">Şehir Seçin</option>
-                                @foreach (var city in ViewBag.Cities as IEnumerable<HasatEmlak.Models.Entities.City>)
+                                @foreach (var city in cities)
                                 {
                                     <option value="@city.Id">@city.Name</option>
                                 }
@@ -207,7 +210,7 @@
                     <h5 class="mb-0"><i class="fas fa-images me-2"></i>İlan Resimleri</h5>
                 </div>
                 <div class="card-body">
-                    <div class="image-upload-container mb-3" onclick="document.getElementById('imageInput').click()">
+                    <div class="image-upload-container mb-3" id="imageUploadContainer">
                         <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
                         <h6>Resimleri Sürükle ve Bırak</h6>
                         <p class="text-muted mb-0">veya tıklayarak seç</p>
@@ -219,7 +222,7 @@
                     <input type="file" id="imageInput" name="Images" multiple accept="image/*"
                            class="d-none" asp-for="Images">
 
-                    <div class="uploaded-images"></div>
+                    <div class="uploaded-images" id="uploadedImages"></div>
 
                     <div class="alert alert-info mt-3">
                         <small>
@@ -269,7 +272,7 @@
                             <i class="fas fa-times me-1"></i>İptal
                         </a>
                         <div>
-                            <button type="submit" class="btn btn-admin-primary me-2">
+                            <button type="submit" class="btn btn-admin-primary me-2" id="submitBtn">
                                 <i class="fas fa-save me-1"></i>İlanı Kaydet
                             </button>
                         </div>
@@ -279,187 +282,346 @@
         </div>
     </div>
 </form>
+
 @section Scripts {
     <script>
-        $(document).ready(function() {
+        // Global değişkenler
+        var selectedFiles = [];
+        var fileInputProcessing = false;
+        var formSubmitted = false;
+        var fileDialogOpen = false;
+
+        $(document).ready(function () {
             initializeLocationDropdowns();
             initializeImageUpload();
+            initializeFormSubmit();
         });
+
+        // Form submit işlemini kontrol et
+        function initializeFormSubmit() {
+            $('#propertyCreateForm').on('submit', function (e) {
+                if (formSubmitted) {
+                    e.preventDefault();
+                    return false;
+                }
+
+                formSubmitted = true;
+                var $submitBtn = $('#submitBtn');
+
+                // Button'u disable et
+                $submitBtn.prop('disabled', true);
+                $submitBtn.html('<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...');
+
+                // File input'u güncelle
+                if (selectedFiles.length > 0) {
+                    updateFileInput();
+                }
+
+            });
+        }
 
         // Location dropdowns
         function initializeLocationDropdowns() {
-            $('#citySelect').on('change', function() {
+            $('#citySelect').on('change', function () {
                 var cityId = $(this).val();
                 loadDistricts(cityId);
             });
 
-            $('#districtSelect').on('change', function() {
+            $('#districtSelect').on('change', function () {
                 var districtId = $(this).val();
                 loadNeighborhoods(districtId);
             });
         }
 
         function loadDistricts(cityId) {
-            var districtSelect = $('#districtSelect');
-            var neighborhoodSelect = $('#neighborhoodSelect');
+            var $districtSelect = $('#districtSelect');
+            var $neighborhoodSelect = $('#neighborhoodSelect');
 
-            districtSelect.html('<option value="">Yükleniyor...</option>');
-            neighborhoodSelect.html('<option value="">İlçe seçin</option>');
+            $districtSelect.html('<option value="">Yükleniyor...</option>');
+            $neighborhoodSelect.html('<option value="">İlçe seçin</option>');
 
             if (cityId) {
                 $.ajax({
                     url: '@Url.Action("GetDistricts", "Property", new { area = "Admin" })',
                     type: 'GET',
                     data: { cityId: cityId },
-                    success: function(data) {
+                    success: function (data) {
                         if (data.error) {
                             console.error('Hata:', data.error);
-                            districtSelect.html('<option value="">Hata oluştu</option>');
+                            $districtSelect.html('<option value="">Hata oluştu</option>');
                             showAlert('İlçeler yüklenirken hata oluştu: ' + data.message, 'danger');
                             return;
                         }
 
                         var options = '<option value="">İlçe Seçin</option>';
-                        $.each(data, function(index, district) {
+                        $.each(data, function (index, district) {
                             options += '<option value="' + district.id + '">' + district.name + '</option>';
                         });
-                        districtSelect.html(options);
+                        $districtSelect.html(options);
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         console.error('AJAX Hatası:', error);
-                        console.error('Status:', status);
-                        console.error('Response:', xhr.responseText);
-                        districtSelect.html('<option value="">Hata oluştu</option>');
+                        $districtSelect.html('<option value="">Hata oluştu</option>');
                         showAlert('İlçeler yüklenirken hata oluştu!', 'danger');
                     }
                 });
             } else {
-                districtSelect.html('<option value="">İlçe Seçin</option>');
-                neighborhoodSelect.html('<option value="">Mahalle Seçin</option>');
+                $districtSelect.html('<option value="">İlçe Seçin</option>');
+                $neighborhoodSelect.html('<option value="">Mahalle Seçin</option>');
             }
         }
 
         function loadNeighborhoods(districtId) {
-            var neighborhoodSelect = $('#neighborhoodSelect');
+            var $neighborhoodSelect = $('#neighborhoodSelect');
 
-            neighborhoodSelect.html('<option value="">Yükleniyor...</option>');
+            $neighborhoodSelect.html('<option value="">Yükleniyor...</option>');
 
             if (districtId) {
                 $.ajax({
                     url: '@Url.Action("GetNeighborhoods", "Property", new { area = "Admin" })',
                     type: 'GET',
                     data: { districtId: districtId },
-                    success: function(data) {
+                    success: function (data) {
                         if (data.error) {
                             console.error('Hata:', data.error);
-                            neighborhoodSelect.html('<option value="">Hata oluştu</option>');
+                            $neighborhoodSelect.html('<option value="">Hata oluştu</option>');
                             showAlert('Mahalleler yüklenirken hata oluştu: ' + data.message, 'danger');
                             return;
                         }
 
                         var options = '<option value="">Mahalle Seçin</option>';
-                        $.each(data, function(index, neighborhood) {
+                        $.each(data, function (index, neighborhood) {
                             options += '<option value="' + neighborhood.id + '">' + neighborhood.name + '</option>';
                         });
-                        neighborhoodSelect.html(options);
+                        $neighborhoodSelect.html(options);
                     },
-                    error: function(xhr, status, error) {
+                    error: function (xhr, status, error) {
                         console.error('AJAX Hatası:', error);
-                        neighborhoodSelect.html('<option value="">Hata oluştu</option>');
+                        $neighborhoodSelect.html('<option value="">Hata oluştu</option>');
                         showAlert('Mahalleler yüklenirken hata oluştu!', 'danger');
                     }
                 });
             } else {
-                neighborhoodSelect.html('<option value="">Mahalle Seçin</option>');
+                $neighborhoodSelect.html('<option value="">Mahalle Seçin</option>');
             }
         }
 
-        // Image upload
+        // Image upload işlemleri
         function initializeImageUpload() {
-            var container = $('.image-upload-container');
-            var fileInput = $('#imageInput');
+            var $container = $('#imageUploadContainer');
+            var $fileInput = $('#imageInput');
+            var clickTimeout = null;
+
+            // Container click - debounce ile
+            $container.on('click', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (fileInputProcessing || clickTimeout) return;
+
+                clickTimeout = setTimeout(function() {
+                    $fileInput.val('');
+                    $fileInput[0].click();
+                    clickTimeout = null;
+                }, 100);
+            });
 
             // Drag and drop events
-            container.on('dragover', function(e) {
+            $container.on('dragover', function (e) {
                 e.preventDefault();
+                e.stopPropagation();
                 $(this).addClass('dragover');
             });
 
-            container.on('dragleave', function(e) {
+            $container.on('dragleave', function (e) {
                 e.preventDefault();
+                e.stopPropagation();
                 $(this).removeClass('dragover');
             });
 
-            container.on('drop', function(e) {
+            $container.on('drop', function (e) {
                 e.preventDefault();
+                e.stopPropagation();
                 $(this).removeClass('dragover');
+
+                if (fileInputProcessing) return;
 
                 var files = e.originalEvent.dataTransfer.files;
-                handleFiles(files);
+                processFiles(files);
             });
 
-            // File input change
-            fileInput.on('change', function() {
-                handleFiles(this.files);
+            // File input change - sadece bir kez tetiklensin
+            $fileInput.off('change').on('change', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                if (fileInputProcessing) {
+                    return;
+                }
+
+                fileInputProcessing = true;
+                var files = this.files;;
+
+                if (files && files.length > 0) {
+                    processFiles(files);
+                } else {
+                }
+
+                // Reset processing flag
+                setTimeout(function () {
+                    fileInputProcessing = false;
+                }, 2000);
             });
         }
 
-        function handleFiles(files) {
+        function processFiles(files) {
+
+            if (!files || files.length === 0) {
+                return;
+            }
+
+            // Dosya seçim ekranından iptal edildi mi kontrol et
+            var hasValidFiles = false;
+            for (var i = 0; i < files.length; i++) {
+                if (files[i].size > 0) {
+                    hasValidFiles = true;
+                    break;
+                }
+            }
+
+            if (!hasValidFiles) {
+                return;
+            }
+
+            // Mevcut dosyaları temizle
+            selectedFiles = [];
+            $('#uploadedImages').empty();
+
+            var processedCount = 0;
+
             for (var i = 0; i < files.length; i++) {
                 var file = files[i];
 
-                if (!file.type.startsWith('image/')) {
-                    showAlert('Geçersiz dosya formatı: ' + file.name, 'warning');
+
+                if (!validateFile(file)) {
                     continue;
                 }
 
-                if (file.size > 5 * 1024 * 1024) { // 5MB
-                    showAlert('Dosya çok büyük: ' + file.name + ' (Max: 5MB)', 'warning');
+                // Duplicate kontrolü
+                var isDuplicate = selectedFiles.some(function (existingFile) {
+                    return existingFile.name === file.name &&
+                        existingFile.size === file.size &&
+                        existingFile.type === file.type;
+                });
+
+                if (isDuplicate) {
                     continue;
                 }
 
-                // Preview
-                var reader = new FileReader();
-                reader.onload = function(e) {
-                    addImagePreview(e.target.result, file.name);
-                };
-                reader.readAsDataURL(file);
+                selectedFiles.push(file);
+                createFilePreview(file);
+                processedCount++;
+            }
+
+
+            if (processedCount > 0) {
+                updateFileInput();
+                showAlert(`${processedCount} dosya başarıyla eklendi!`, 'success');
             }
         }
 
-        function addImagePreview(src, filename) {
-            var previewHtml =
-                '<div class="uploaded-image">' +
-                    '<img src="' + src + '" alt="' + filename + '">' +
-                    '<button type="button" class="remove-image" onclick="removeImagePreview(this)">' +
-                        '<i class="fas fa-times"></i>' +
-                    '</button>' +
-                '</div>';
-            $('.uploaded-images').append(previewHtml);
+        function validateFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showAlert('Geçersiz dosya formatı: ' + file.name, 'warning');
+                return false;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showAlert('Dosya çok büyük: ' + file.name + ' (Max: 5MB)', 'warning');
+                return false;
+            }
+
+            var validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+            var extension = '.' + file.name.split('.').pop().toLowerCase();
+
+            if (!validExtensions.includes(extension)) {
+                showAlert('Desteklenmeyen dosya uzantısı: ' + file.name, 'warning');
+                return false;
+            }
+
+            return true;
         }
 
-        function removeImagePreview(button) {
-            $(button).closest('.uploaded-image').remove();
+        function createFilePreview(file) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                var previewHtml =
+                    '<div class="uploaded-image mb-2" data-filename="' + file.name + '">' +
+                    '<div class="position-relative d-inline-block">' +
+                    '<img src="' + e.target.result + '" alt="' + file.name + '" class="img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">' +
+                    '<button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0" onclick="removeFilePreview(\'' + file.name + '\')" style="transform: translate(50%, -50%);">' +
+                    '<i class="fas fa-times"></i>' +
+                    '</button>' +
+                    '</div>' +
+                    '<div class="text-center mt-1">' +
+                    '<small class="text-muted">' + file.name + '</small>' +
+                    '</div>' +
+                    '</div>';
+
+                $('#uploadedImages').append(previewHtml);
+            };
+
+            reader.readAsDataURL(file);
+        }
+
+        function removeFilePreview(filename) {
+
+            selectedFiles = selectedFiles.filter(function (file) {
+                return file.name !== filename;
+            });
+
+            $('.uploaded-image[data-filename="' + filename + '"]').remove();
+            updateFileInput();
+        }
+
+        function updateFileInput() {
+            try {
+                var dt = new DataTransfer();
+
+                selectedFiles.forEach(function (file) {
+                    dt.items.add(file);
+                });
+
+                document.getElementById('imageInput').files = dt.files;
+            } catch (e) {
+                console.error('Error updating file input:', e);
+            }
         }
 
         // Alert function
         function showAlert(message, type) {
             var alertClass = 'alert-' + type;
-            var alertHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
-                            '<i class="fas fa-exclamation-circle me-2"></i>' + message +
-                            '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
-                            '</div>';
+            var iconClass = type === 'success' ? 'check-circle' :
+                type === 'danger' ? 'exclamation-circle' :
+                    type === 'warning' ? 'exclamation-triangle' : 'info-circle';
 
-            // Add alert to page
+            var alertHtml =
+                '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+                '<i class="fas fa-' + iconClass + ' me-2"></i>' + message +
+                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                '</div>';
+
             if ($('.alert').length > 0) {
                 $('.alert').first().after(alertHtml);
             } else {
                 $('main .container').prepend(alertHtml);
             }
 
-            // Auto remove after 5 seconds
-            setTimeout(function() {
-                $('.alert').fadeOut();
+            setTimeout(function () {
+                $('.alert').fadeOut(function () {
+                    $(this).remove();
+                });
             }, 5000);
         }
     </script>

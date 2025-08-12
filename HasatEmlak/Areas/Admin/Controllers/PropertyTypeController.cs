@@ -32,19 +32,27 @@ namespace HasatEmlak.Areas.Admin.Controllers
                 return Json(new { success = false, message = "Emlak türü adı gereklidir!" });
             }
 
-            var propertyType = new PropertyType
+            try
             {
-                Name = name,
-                Description = description,
-                IconClass = iconClass ?? "fas fa-building",
-                DisplayOrder = displayOrder > 0 ? displayOrder : await _context.PropertyTypes.CountAsync() + 1,
-                IsActive = true
-            };
+                var propertyType = new PropertyType
+                {
+                    Name = name,
+                    Description = description,
+                    IconClass = iconClass ?? "fas fa-building",
+                    DisplayOrder = displayOrder > 0 ? displayOrder : await _context.PropertyTypes.CountAsync() + 1,
+                    IsActive = true
+                };
 
-            _context.PropertyTypes.Add(propertyType);
-            await _context.SaveChangesAsync();
+                _context.PropertyTypes.Add(propertyType);
+                await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = "Emlak türü başarıyla eklendi!" });
+                return Json(new { success = true, message = "Emlak türü başarıyla eklendi!" });
+            }
+            catch (Exception ex)
+            {
+                // Detaylı hata logu için
+                return Json(new { success = false, message = $"Hata: {ex.Message}" });
+            }
         }
 
         [HttpPost]

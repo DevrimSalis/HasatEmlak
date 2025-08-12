@@ -78,5 +78,18 @@ namespace HasatEmlak.Models.ViewModels
 
         [Display(Name = "İlan Resimleri")]
         public List<IFormFile> Images { get; set; } = new List<IFormFile>();
+
+        // Validation için
+        public bool HasValidImages()
+        {
+            if (Images == null || !Images.Any())
+                return true; // Resim zorunlu değilse
+
+            return Images.All(img =>
+                img.Length > 0 &&
+                img.Length <= 5 * 1024 * 1024 && // 5MB limit
+                new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" }
+                    .Contains(Path.GetExtension(img.FileName).ToLower()));
+        }
     }
 }

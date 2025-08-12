@@ -49,7 +49,7 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item" href="@Url.Action("Index", "City", new { area = "Admin" })">
+                                <a class="dropdown-item" href="@Url.Action("Index", "Location", new { area = "Admin" })">
                                     <i class="fas fa-map-marker-alt me-1"></i>Şehirler
                                 </a>
                             </li>
@@ -119,12 +119,10 @@
                             <i class="fas fa-tags me-2"></i>Kategoriler
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "PropertyType" ? "active" : "")"
-                           href="#PropertyTypes">
-                            <i class="fas fa-building me-2"></i>Emlak Türleri
-                        </a>
-                    </li>
+                    <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "PropertyType" ? "active" : "")"
+                       href="@Url.Action("Index", "PropertyType", new { area = "Admin" })">
+                        <i class="fas fa-building me-2"></i>Emlak Türleri
+                    </a>
                     <li class="nav-item">
                         <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Location" ? "active" : "")"
                            href="@Url.Action("Index", "Location", new { area = "Admin" })">
