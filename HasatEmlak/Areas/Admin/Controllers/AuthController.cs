@@ -19,7 +19,7 @@ namespace HasatEmlak.Areas.Admin.Controllers
         public IActionResult Login(string username, string password)
         {
             // Basit admin giriş (güvenlik için daha sonra geliştirilebilir)
-            if (username == "admin" && password == "admin123")
+            if (username == "admin" && password == "dDKm4Bhu9MzohwNs")
             {
                 HttpContext.Session.SetString("AdminLoggedIn", "true");
                 HttpContext.Session.SetString("AdminUsername", username);
